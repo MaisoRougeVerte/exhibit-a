@@ -1,0 +1,6 @@
+packages:
+  - apps/*
+  - packages/*
+  - judge
+allowBuilds:
+  lefthook: true

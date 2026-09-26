@@ -121,3 +121,6 @@ build/
 # Project-specific
 .vercel/
 coverage/
+
+# Local-only test assets, never committed or deployed
+apps/web/local-art/

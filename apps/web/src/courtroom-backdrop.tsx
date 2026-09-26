@@ -1,3 +1,4 @@
+import { backgroundFor } from "./art.ts";
 import type { Position } from "./positions.ts";
 
 type Palette = { wall: string; wallDark: string; trim: string; light: string };
@@ -15,6 +16,16 @@ const DESK_PANEL_X = [70, 330, 590, 850, 1110, 1370];
 
 /** Drawn placeholder set: wood panels, pillars and a warm window, until illustrated backgrounds exist. */
 export function CourtroomBackdrop({ position }: { position: Position }) {
+  const image = backgroundFor(position);
+  if (image !== undefined) {
+    return (
+      <img
+        src={image}
+        alt=""
+        className="absolute inset-0 size-full object-cover [image-rendering:pixelated]"
+      />
+    );
+  }
   const p = palettes[position];
   return (
     <svg
@@ -74,7 +85,8 @@ export function CourtroomBackdrop({ position }: { position: Position }) {
 
 /** Foreground desk the character stands behind: the signature courtroom framing. */
 export function CourtroomDesk({ position }: { position: Position }) {
-  if (position === "wide") return null;
+  // Illustrated backgrounds carry their own desk.
+  if (position === "wide" || backgroundFor(position) !== undefined) return null;
   const p = palettes[position];
   return (
     <svg

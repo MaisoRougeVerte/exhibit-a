@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "id": "framed-commit",
+  "title": "Stock goes negative when two customers buy the last baguette",
+  "source": "bob-ide",
+  "recordedAt": "2026-09-20T14:00:00+02:00",
+  "repo": {
+    "name": "MaisoRougeVerte/crumb-and-co",
+    "head": "23db325"
+  },
+  "bugReport": {
+    "title": "Stock went negative on the last baguette",
+    "body": "On the night of 19 September, two customers paid for the last baguette tradition within the same second. The dashboard then showed a stock of -1, and one customer had to be refunded. See logs/orders-2026-09-19.jsonl. Support thinks it started with last week's inventory refactor, the one that renamed the stock module."
+  },
+  "events": [
+    {
+      "type": "narration",
+      "line": "The courtroom assembles. A bakery is on trial for selling baguettes it does not have."
+    },
+    {
+      "type": "claim",
+      "id": "claim-rename",
+      "speaker": "investigator",
+      "expression": "confident",
+      "line": "The rename refactor in a6fe65a introduced the race: it restructured the check-and-decrement path, enabling two concurrent orders to both pass the stock check.",
+      "evidence": [
+        {
+          "id": "ev-repro-fail",
+          "kind": "test",
+          "file": "tests/repro/framed-commit.test.ts",
+          "testName": "concurrent orders cannot both succeed on the last baguette",
+          "expect": "fail"
+        },
+        {
+          "id": "ev-alibi-rename",
+          "kind": "test-at-commit",
+          "file": "tests/repro/framed-commit.test.ts",
+          "testName": "concurrent orders cannot both succeed on the last baguette",
+          "commit": "a6fe65a^",
+          "expect": "pass"
+        }
+      ]
+    },
+    {
+      "type": "claim",
+      "id": "claim-log-negative",
+      "speaker": "investigator",
+      "expression": "neutral",
+      "line": "The production log confirms a stock.negative event occurred on 2026-09-19 at 22:31:07, matching the time two simultaneous orders were placed.",
+      "evidence": [
+        {
+          "id": "ev-log-negative",
+          "kind": "log-search",
+          "file": "logs/orders-2026-09-19.jsonl",
+          "pattern": "stock.negative",
+          "expectMatches": 1
+        }
+      ]
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-repro-fail",
+      "status": "upheld",
+      "exitCode": 1,
+      "excerpt": "framed-commit concurrent orders cannot both succeed on the last baguette\nAssertionError: expected [ { ok: true, order: { …(5) } }, …(1) ] to have a length of 1 but got 2\n    at Proxy.<anonymous> (file://<repo>/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2137:20)\n    at Proxy.<anonymous> (file://<repo>/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)\n    at Proxy.methodWrapper (file://<repo>/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)",
+      "durationMs": 255
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-alibi-rename",
+      "status": "rejected",
+      "exitCode": 1,
+      "excerpt": "framed-commit concurrent orders cannot both succeed on the last baguette\nAssertionError: expected [ { ok: true, order: { …(5) } }, …(1) ] to have a length of 1 but got 2\n    at Proxy.<anonymous> (file://~/Documents/ProjetPerso/IBM-Hackaton/demo-repo/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2137:20)\n    at Proxy.<anonymous> (file://~/Documents/ProjetPerso/IBM-Hackaton/demo-repo/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)\n    at Proxy.methodWrapper (file://~/Documents/ProjetPerso/IBM-Hackaton/demo-repo/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)",
+      "durationMs": 254
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-log-negative",
+      "status": "upheld",
+      "exitCode": 0,
+      "excerpt": "1 line(s) contain \"stock.negative\" (expected 1)",
+      "durationMs": 0
+    },
+    {
+      "type": "objection",
+      "id": "obj-1",
+      "speaker": "prosecutor",
+      "target": "claim-rename",
+      "expression": "angry",
+      "line": "ev-alibi-rename was REJECTED: the parent a6fe65a^ also fails the test. The rename did not introduce this bug. You have accused an innocent commit."
+    },
+    {
+      "type": "objection",
+      "id": "obj-2",
+      "speaker": "prosecutor",
+      "target": "claim-log-negative",
+      "expression": "angry",
+      "line": "A log-search proves correlation only. One matching line does not prove two simultaneous orders caused it, nor does it identify a culprit commit. This evidence establishes occurrence, not causation."
+    },
+    {
+      "type": "withdrawal",
+      "speaker": "investigator",
+      "target": "claim-rename",
+      "expression": "sweating",
+      "line": "I withdraw claim-rename. The alibi shows the parent already fails — the rename is innocent. I was wrong to accuse it."
+    },
+    {
+      "type": "claim",
+      "id": "claim-async-split",
+      "speaker": "investigator",
+      "expression": "thinking",
+      "line": "The real culprit is 1293f22: it split the stock check and decrement across an await, creating a TOCTOU race. Two concurrent requests both read stock=1, both pass, both decrement to 0 and -1.",
+      "evidence": [
+        {
+          "id": "ev-parent-passes",
+          "kind": "test-at-commit",
+          "file": "tests/repro/framed-commit.test.ts",
+          "testName": "concurrent orders cannot both succeed on the last baguette",
+          "commit": "1293f22^",
+          "expect": "pass"
+        },
+        {
+          "id": "ev-culprit-fails",
+          "kind": "test-at-commit",
+          "file": "tests/repro/framed-commit.test.ts",
+          "testName": "concurrent orders cannot both succeed on the last baguette",
+          "commit": "1293f22",
+          "expect": "fail"
+        }
+      ],
+      "respondsTo": "obj-1"
+    },
+    {
+      "type": "claim",
+      "id": "claim-log-corroborates",
+      "speaker": "investigator",
+      "expression": "neutral",
+      "line": "The log shows ord_00421 and ord_00422 placed at identical timestamps 22:31:07 both succeeded, then stock.negative fired — a two-order race matching the test scenario.",
+      "evidence": [
+        {
+          "id": "ev-log-simultaneous",
+          "kind": "log-search",
+          "file": "logs/orders-2026-09-19.jsonl",
+          "pattern": "\"2026-09-19T22:31:07",
+          "expectMatches": 3
+        }
+      ],
+      "respondsTo": "obj-2"
+    },
+    {
+      "type": "objection",
+      "id": "obj-3",
+      "speaker": "prosecutor",
+      "target": "claim-log-negative",
+      "expression": "angry",
+      "line": "obj-2 stands unrefuted: one log-search match proves only that the event occurred, not that any specific commit caused it. This claim cannot survive."
+    },
+    {
+      "type": "objection",
+      "id": "obj-4",
+      "speaker": "prosecutor",
+      "target": "claim-log-corroborates",
+      "expression": "angry",
+      "line": "Three log lines at 22:31:07 show two orders arrived together — correlation only. No log-search can establish that 1293f22 is the cause. This claim adds no causal weight."
+    },
+    {
+      "type": "withdrawal",
+      "speaker": "investigator",
+      "target": "claim-log-negative",
+      "expression": "defeated",
+      "line": "I withdraw claim-log-negative. The log proves the event happened, not the cause. claim-async-split carries the causal proof."
+    },
+    {
+      "type": "withdrawal",
+      "speaker": "investigator",
+      "target": "claim-log-corroborates",
+      "expression": "defeated",
+      "line": "I withdraw claim-log-corroborates. Correlation alone cannot uphold a causal claim. The test-at-commit pair is sufficient."
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-log-simultaneous",
+      "status": "upheld",
+      "exitCode": 0,
+      "excerpt": "3 line(s) contain \"\"2026-09-19T22:31:07\" (expected 3)",
+      "durationMs": 0
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-parent-passes",
+      "status": "upheld",
+      "exitCode": 0,
+      "excerpt": "1 test(s) passed",
+      "durationMs": 248
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-culprit-fails",
+      "status": "upheld",
+      "exitCode": 1,
+      "excerpt": "framed-commit concurrent orders cannot both succeed on the last baguette\nAssertionError: expected [ { ok: true, order: { …(5) } }, …(1) ] to have a length of 1 but got 2\n    at Proxy.<anonymous> (file://~/Documents/ProjetPerso/IBM-Hackaton/demo-repo/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2137:20)\n    at Proxy.<anonymous> (file://~/Documents/ProjetPerso/IBM-Hackaton/demo-repo/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)\n    at Proxy.methodWrapper (file://~/Documents/ProjetPerso/IBM-Hackaton/demo-repo/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)",
+      "durationMs": 255
+    },
+    {
+      "type": "verdict",
+      "rootCause": "Commit 1293f22 introduced an async InventoryStore and split the stock check from the decrement across two awaits in reserveStock. Two concurrent requests both read stock=1 before either decrement executes, both pass the check, and both decrement — leaving stock at -1.",
+      "culpritCommit": "1293f22",
+      "upheldClaims": ["claim-async-split"],
+      "regressionTest": {
+        "file": "tests/repro/framed-commit.test.ts",
+        "testName": "concurrent orders cannot both succeed on the last baguette"
+      },
+      "fixSummary": "Make the check-and-decrement atomic: serialize access to the store with a mutex, use a compare-and-swap, or move both the check and the decrement into a single synchronous critical section so no two requests can interleave.",
+      "line": "The rename is innocent. 1293f22 split check from decrement across an await — that is the race. The inventory module is guilty."
+    }
+  ]
+}

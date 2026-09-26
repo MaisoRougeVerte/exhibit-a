@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "id": "midnight-order",
+  "title": "Daily report buckets after-midnight Paris orders into the wrong day",
+  "source": "bob-ide",
+  "recordedAt": "2026-09-27T14:30:00+02:00",
+  "repo": {
+    "name": "MaisoRougeVerte/crumb-and-co",
+    "head": "8d6e89b"
+  },
+  "bugReport": {
+    "title": "Daily report counts orders on the wrong day",
+    "body": "The daily sales report for Saturday 19 September includes pre-orders placed after midnight for Sunday morning. The shop closes its books on Paris time. The Saturday total is too high and the Sunday total too low. The production log sample is in logs/orders-2026-09-19.jsonl."
+  },
+  "events": [
+    {
+      "type": "narration",
+      "line": "Accounting raises the alarm: the books for Saturday 19 September do not balance. Paris midnight was crossed, and the ledger did not notice."
+    },
+    {
+      "type": "claim",
+      "id": "claim-refactor",
+      "speaker": "investigator",
+      "expression": "confident",
+      "line": "Commit a936ae7 replaced the Paris-timezone Intl formatter with a raw UTC string slice, assigning after-midnight Paris orders to the wrong calendar day.",
+      "evidence": [
+        {
+          "id": "ev-repro-fail",
+          "kind": "test",
+          "file": "tests/repro/midnight-order.test.ts",
+          "testName": "orders after UTC 22:00 belong to the next Paris day not the current UTC day",
+          "expect": "fail"
+        },
+        {
+          "id": "ev-alibi-parent",
+          "kind": "test-at-commit",
+          "file": "tests/repro/midnight-order.test.ts",
+          "testName": "orders after UTC 22:00 belong to the next Paris day not the current UTC day",
+          "commit": "a936ae7^",
+          "expect": "pass"
+        }
+      ]
+    },
+    {
+      "type": "claim",
+      "id": "claim-log",
+      "speaker": "investigator",
+      "expression": "thinking",
+      "line": "The production log confirms 6 orders placed after 22:00 UTC on 2026-09-19, all misattributed to Saturday in the current code.",
+      "evidence": [
+        {
+          "id": "ev-log-after-midnight",
+          "kind": "log-search",
+          "file": "logs/orders-2026-09-19.jsonl",
+          "pattern": "\"2026-09-19T22:",
+          "expectMatches": 6
+        }
+      ]
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-log-after-midnight",
+      "status": "upheld",
+      "exitCode": 0,
+      "excerpt": "6 line(s) contain \"\"2026-09-19T22:\" (expected 6)",
+      "durationMs": 0
+    },
+    {
+      "type": "objection",
+      "id": "obj-1",
+      "speaker": "prosecutor",
+      "target": "claim-log",
+      "expression": "angry",
+      "line": "A log-search proving 6 lines contain '2026-09-19T22:' shows those orders EXIST — it does NOT prove they were misattributed to the wrong day. Correlation is not causation."
+    },
+    {
+      "type": "objection",
+      "id": "obj-2",
+      "speaker": "prosecutor",
+      "target": "claim-log",
+      "expression": "angry",
+      "line": "claim-log has only one evidence item proving nothing about causation. No test-at-commit, no bisect, no field-level check showing an incorrect day value. The claim is unsupported."
+    },
+    {
+      "type": "withdrawal",
+      "speaker": "investigator",
+      "target": "claim-log",
+      "expression": "defeated",
+      "line": "I withdraw claim-log. The prosecutor is correct: log-search proves the orders exist, not that they were bucketed incorrectly. claim-refactor carries the causal evidence."
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-repro-fail",
+      "status": "upheld",
+      "exitCode": 1,
+      "excerpt": "dailySales midnight boundary orders after UTC 22:00 belong to the next Paris day not the current UTC day\nAssertionError: expected 2300 to be 840 // Object.is equality\n    at <repo>/tests/repro/midnight-order.test.ts:21:38\n    at file://<repo>/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file://<repo>/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26",
+      "durationMs": 259
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-alibi-parent",
+      "status": "upheld",
+      "exitCode": 0,
+      "excerpt": "1 test(s) passed",
+      "durationMs": 259
+    },
+    {
+      "type": "verdict",
+      "rootCause": "Commit a936ae7 removed the Intl.DateTimeFormat with timeZone 'Europe/Paris' and replaced it with order.placedAt.slice(0,10), which reads the UTC date. Orders placed after 22:00 UTC (midnight Paris time) are assigned to the UTC calendar day, not the Paris calendar day, inflating Saturday totals and deflating Sunday totals.",
+      "culpritCommit": "a936ae7",
+      "upheldClaims": ["claim-refactor"],
+      "regressionTest": {
+        "file": "tests/repro/midnight-order.test.ts",
+        "testName": "orders after UTC 22:00 belong to the next Paris day not the current UTC day"
+      },
+      "fixSummary": "Restore the Paris-timezone day bucketing: use new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', ... }).format(new Date(order.placedAt)) instead of slicing the ISO string. The ISO string is always UTC; slicing it ignores the shop's timezone.",
+      "line": "The refactor traded correctness for simplicity. Restoring the Intl formatter closes the books on Paris time. Case closed."
+    }
+  ]
+}

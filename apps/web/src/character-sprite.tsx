@@ -36,7 +36,7 @@ export function CharacterSprite({ speaker, expression, talking }: CharacterSprit
       initial={reduceMotion ? false : { opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.22 }}
-      className="absolute inset-x-0 bottom-[30%] mx-auto flex h-[62%] justify-center"
+      className="absolute inset-x-0 bottom-[30%] mx-auto flex h-[62%] justify-center portrait:bottom-[32%] portrait:h-[46%]"
     >
       {url === undefined ? (
         <svg
@@ -56,7 +56,7 @@ export function CharacterSprite({ speaker, expression, talking }: CharacterSprit
             y="175"
             textAnchor="middle"
             fontSize="92"
-            fontFamily="Georgia, serif"
+            fontFamily="Cinzel Variable, serif"
             fill="rgba(255,255,255,0.85)"
           >
             {style.initial}

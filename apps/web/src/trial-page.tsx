@@ -17,7 +17,7 @@ type TrialPageProps = {
 };
 
 const hudButton =
-  "rounded border border-white/60 bg-black/60 px-[1em] py-[0.3em] text-[1.4cqw] text-white hover:bg-black/80";
+  "rounded border border-white/60 bg-black/60 px-[1em] py-[0.3em] text-vn-hud text-white hover:bg-black/80";
 
 export function TrialPage({ caseFile }: TrialPageProps) {
   const [index, setIndex] = useState(0);
@@ -66,7 +66,7 @@ export function TrialPage({ caseFile }: TrialPageProps) {
     <main className="grid min-h-dvh place-items-center bg-black">
       <section
         aria-label={`Trial: ${caseFile.title}`}
-        className="@container relative aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden bg-stone-900 text-white select-none"
+        className="@container relative aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden portrait:aspect-auto portrait:h-dvh portrait:max-w-none bg-stone-900 text-white select-none"
       >
         <motion.div
           key={`camera-${index}`}
@@ -110,11 +110,11 @@ export function TrialPage({ caseFile }: TrialPageProps) {
         </div>
 
         <header className="absolute inset-x-[2%] top-[3%] z-20 flex items-start justify-between gap-4">
-          <div className="flex items-center gap-[1em] text-[1.4cqw]">
+          <div className="flex items-center gap-[1em] text-vn-hud">
             <a href="#/" className={hudButton}>
-              ◀ Menu
+              ‹ Menu
             </a>
-            <span className="rounded bg-black/60 px-[0.8em] py-[0.3em] text-white/80">
+            <span className="rounded bg-black/60 px-[0.8em] py-[0.3em] text-white/80 max-sm:hidden">
               {caseFile.title} · {index + 1}/{caseFile.events.length}
             </span>
           </div>
@@ -143,13 +143,13 @@ export function TrialPage({ caseFile }: TrialPageProps) {
             animate={{ opacity: 1, y: 0 }}
             className="absolute inset-x-0 top-[22%] z-30 flex flex-col items-center gap-[1.2em]"
           >
-            <p className="rotate-[-4deg] border-4 border-red-600 px-[0.6em] font-display text-[6cqw] font-black tracking-widest text-red-600 [text-shadow:0_3px_0_rgba(0,0,0,0.8)]">
+            <p className="rotate-[-4deg] border-4 border-red-600 px-[0.6em] font-display text-vn-stamp font-black tracking-widest text-red-600 [text-shadow:0_3px_0_rgba(0,0,0,0.8)]">
               GUILTY
             </p>
-            <div className="flex gap-[1em] text-[1.6cqw]">
+            <div className="flex gap-[1em] text-vn-menu portrait:flex-col">
               <a
                 href={reportHref(caseFile.id)}
-                className="rounded bg-amber-500 px-[1.2em] py-[0.5em] font-semibold text-stone-950"
+                className="rounded bg-amber-500 px-[1.2em] py-[0.5em] font-extrabold text-stone-950"
               >
                 Verdict report
               </a>

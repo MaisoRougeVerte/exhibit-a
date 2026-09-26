@@ -17,7 +17,7 @@ export function CourtRecordOverlay({ open, entries, onClose }: CourtRecordOverla
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "tween", duration: 0.2 }}
-          className="absolute inset-y-0 right-0 z-40 w-[42%] overflow-y-auto border-l-4 border-amber-400/80 bg-stone-950/95 p-[2%] text-[1.5cqw]"
+          className="absolute inset-y-0 right-0 z-40 w-[42%] overflow-y-auto portrait:w-full border-l-4 border-amber-400/80 bg-stone-950/95 p-[2%] text-vn-small portrait:p-4"
         >
           <button
             type="button"

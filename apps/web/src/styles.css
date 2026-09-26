@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Georgia", "Times New Roman", serif;
+  --font-display: "Cinzel Variable", serif;
+  --font-sans: "M PLUS Rounded 1c", ui-sans-serif, sans-serif;
+  --font-comic: "Bangers", "Impact", sans-serif;
   --color-wood-950: #1c1109;
   --color-wood-900: #2b1a0e;
   --color-wood-800: #3d2614;
@@ -17,5 +19,34 @@
 body {
   margin: 0;
   min-height: 100dvh;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Stage text scales with the stage but never gets unreadable on phones or huge on TVs. */
+@utility text-vn-body {
+  font-size: clamp(1rem, 2.4cqw, 2.1rem);
+}
+@utility text-vn-name {
+  font-size: clamp(1rem, 2.6cqw, 2.2rem);
+}
+@utility text-vn-hud {
+  font-size: clamp(0.8rem, 1.4cqw, 1.1rem);
+}
+@utility text-vn-small {
+  font-size: clamp(0.9rem, 1.5cqw, 1.2rem);
+}
+@utility text-vn-tag {
+  font-size: clamp(0.75rem, 1.6cqw, 1.3rem);
+}
+@utility text-vn-lead {
+  font-size: clamp(1.1rem, 2cqw, 1.8rem);
+}
+@utility text-vn-menu {
+  font-size: clamp(1rem, 1.8cqw, 1.5rem);
+}
+@utility text-vn-stamp {
+  font-size: clamp(2.5rem, 6cqw, 5rem);
+}
+@utility text-vn-title {
+  font-size: clamp(3rem, 9cqw, 8rem);
 }

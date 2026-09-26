@@ -23,31 +23,31 @@ export function HomePage() {
   return (
     <main className="min-h-dvh bg-stone-950 text-white">
       <section className="grid min-h-dvh place-items-center bg-black">
-        <div className="@container relative aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden">
-          <CourtroomBackdrop position="bench" />
+        <div className="@container relative aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden portrait:aspect-auto portrait:h-dvh portrait:max-w-none">
+          <CourtroomBackdrop position="defense" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/85" />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-[2.5cqw] px-[6%] text-center text-white">
-            <p className="font-display text-[1.6cqw] tracking-[0.6em] text-amber-300">
+            <p className="font-display text-vn-tag tracking-[0.6em] text-amber-300">
               DEBUGGING ON TRIAL
             </p>
-            <h1 className="font-display text-[9cqw] leading-none font-black tracking-wide [text-shadow:0_6px_0_rgba(0,0,0,0.7)]">
+            <h1 className="font-display text-vn-title leading-none font-black tracking-wide [text-shadow:0_6px_0_rgba(0,0,0,0.7)]">
               EXHIBIT A
             </h1>
-            <p className="max-w-[70%] text-[2cqw] font-semibold [text-shadow:0_2px_0_rgba(0,0,0,0.9)]">
+            <p className="max-w-[70%] text-vn-lead font-extrabold portrait:max-w-[92%] [text-shadow:0_2px_0_rgba(0,0,0,0.9)]">
               Your AI says it found the bug. Make it prove it.
             </p>
-            <p className="max-w-[70%] text-[1.4cqw] text-white/80">
+            <p className="max-w-[70%] text-vn-small text-white/80 portrait:max-w-[92%]">
               66% of developers say AI answers are "almost right, but not quite". Here, IBM Bob
               investigates, a prosecutor objects, and a deterministic judge re-runs every piece of
               evidence before any verdict.
             </p>
-            <nav className="mt-[1cqw] flex flex-col items-stretch gap-[0.9cqw] text-[1.8cqw]">
+            <nav className="mt-[1cqw] flex flex-col items-stretch gap-[0.9cqw] text-vn-menu portrait:gap-3">
               {bundledCases[0] !== undefined && (
                 <a
                   href={trialHref(bundledCases[0].id)}
-                  className="rounded border-2 border-amber-300 bg-black/70 px-[3em] py-[0.35em] font-semibold hover:bg-amber-500 hover:text-stone-950"
+                  className="rounded border-2 border-amber-300 bg-black/70 px-[3em] py-[0.35em] font-extrabold hover:bg-amber-500 hover:text-stone-950"
                 >
-                  ▶ Watch a trial
+                  Watch a trial
                 </a>
               )}
               {timeline !== undefined && (
@@ -92,7 +92,7 @@ export function HomePage() {
               className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-black/40 p-5"
             >
               <div>
-                <p className="font-semibold">{caseFile.title}</p>
+                <p className="font-extrabold">{caseFile.title}</p>
                 <p className="text-sm text-white/60">
                   {caseFile.bugReport.title}
                   {caseFile.source === "fixture" && " · sample"}
@@ -101,7 +101,7 @@ export function HomePage() {
               <div className="flex gap-3 text-sm">
                 <a
                   href={trialHref(caseFile.id)}
-                  className="rounded bg-brass-500 px-4 py-2 font-semibold text-wood-950"
+                  className="rounded bg-brass-500 px-4 py-2 font-extrabold text-wood-950"
                 >
                   Replay
                 </a>

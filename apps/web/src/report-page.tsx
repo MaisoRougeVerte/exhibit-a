@@ -40,7 +40,7 @@ export function ReportPage({ caseFile }: ReportPageProps) {
 
       <section className="rounded-xl bg-wood-900 p-5">
         <h2 className="font-display text-xl text-brass-400">Bug report</h2>
-        <p className="mt-1 font-semibold">{caseFile.bugReport.title}</p>
+        <p className="mt-1 font-extrabold">{caseFile.bugReport.title}</p>
         <p className="mt-2 text-white/80">{caseFile.bugReport.body}</p>
       </section>
 

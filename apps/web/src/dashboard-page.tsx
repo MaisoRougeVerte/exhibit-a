@@ -31,7 +31,7 @@ function RepoTrials({ owner, repo }: { owner: string; repo: string }) {
           </span>
           <a
             href={remoteTrialHref(owner, repo, file)}
-            className="rounded bg-brass-500 px-3 py-1 text-sm font-semibold text-wood-950"
+            className="rounded bg-brass-500 px-3 py-1 text-sm font-extrabold text-wood-950"
           >
             Replay
           </a>
@@ -107,7 +107,7 @@ export function DashboardPage() {
         />
         <button
           type="submit"
-          className="rounded bg-brass-500 px-5 py-2 font-semibold text-wood-950"
+          className="rounded bg-brass-500 px-5 py-2 font-extrabold text-wood-950"
         >
           Connect
         </button>

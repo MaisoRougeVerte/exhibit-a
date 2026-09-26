@@ -26,7 +26,7 @@ export function ObjectionBubble({ effect, eventIndex }: ObjectionBubbleProps) {
           <svg
             viewBox="0 0 620 300"
             aria-hidden="true"
-            className="w-[70%] drop-shadow-[0_10px_0_rgba(0,0,0,0.6)]"
+            className="w-[70%] portrait:w-[95%] drop-shadow-[0_10px_0_rgba(0,0,0,0.6)]"
           >
             <path d={JAGGED} fill="#fff" stroke="#111" strokeWidth="10" strokeLinejoin="round" />
             <text
@@ -36,7 +36,7 @@ export function ObjectionBubble({ effect, eventIndex }: ObjectionBubbleProps) {
               fontSize="92"
               fontStyle="italic"
               fontWeight="900"
-              fontFamily="Impact, 'Arial Black', sans-serif"
+              fontFamily="Bangers, Impact, sans-serif"
               fill="#d4141c"
               stroke="#111"
               strokeWidth="6"
@@ -54,7 +54,7 @@ export function ObjectionBubble({ effect, eventIndex }: ObjectionBubbleProps) {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: [0, 1, 1, 0], y: 0 }}
           transition={{ duration: 0.9, times: [0, 0.15, 0.75, 1] }}
-          className="pointer-events-none absolute top-[8%] right-[4%] z-30 rounded-md border-2 border-amber-300 bg-black/80 px-[1.5em] py-[0.4em] font-display text-[2.4cqw] tracking-[0.3em] text-amber-300"
+          className="pointer-events-none absolute top-[8%] right-[4%] z-30 rounded-md border-2 border-amber-300 bg-black/80 px-[1.5em] py-[0.4em] font-display text-vn-body tracking-[0.3em] text-amber-300"
         >
           RULING
         </motion.div>

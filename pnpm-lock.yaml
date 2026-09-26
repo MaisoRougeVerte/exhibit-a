@@ -29,6 +29,15 @@ importers:
       '@exhibit-a/schema':
         specifier: workspace:*
         version: link:../../packages/schema
+      '@fontsource-variable/cinzel':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/bangers':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/m-plus-rounded-1c':
+        specifier: 5.3.0
+        version: 5.3.0
       motion:
         specifier: ^13.4.3
         version: 13.4.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -137,6 +146,15 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource-variable/cinzel@5.3.0':
+    resolution: {integrity: sha512-eFcU0TwaAP5QESF2pV8VoOPJJXJ6sSGm/6mXMwqTdMBPAJMaLhfa6oISHuOtFeddsoHP9RYm4Io0j1j3mNEz2Q==}
+
+  '@fontsource/bangers@5.3.0':
+    resolution: {integrity: sha512-tSRpmWwkqrO9PCqo9wjA/99/5sLOIWm5cf51G3ooEHd8qZus8sVSSJoWp/7EvM5rIgZMjKRG6XtY9yeisKxE7g==}
+
+  '@fontsource/m-plus-rounded-1c@5.3.0':
+    resolution: {integrity: sha512-eB/JxJBRXLdfTsBDElsAZDMtHXM58Hf1tKkHoDVZAaUN7a+qYfwNKh4Q2f7Fk9YNg4xPFjTwooVlQyqbhi8CWQ==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1014,6 +1032,12 @@ snapshots:
 
   '@biomejs/cli-win32-x64@2.5.14':
     optional: true
+
+  '@fontsource-variable/cinzel@5.3.0': {}
+
+  '@fontsource/bangers@5.3.0': {}
+
+  '@fontsource/m-plus-rounded-1c@5.3.0': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

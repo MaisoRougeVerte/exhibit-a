@@ -4,33 +4,8 @@
   "repo": "crumb-and-co",
   "file": "tests/repro/vanishing-discount.test.ts",
   "testName": "promo code BIENVENUE10 gives 229 cents on a 255-cent cart",
-  "generatedAt": "2026-09-26T12:19:58.102Z",
+  "generatedAt": "2026-09-26T12:20:22.530Z",
   "commits": [
-    {
-      "sha": "09c8ae1",
-      "subject": "chore: bootstrap TypeScript project with Vitest",
-      "status": "error"
-    },
-    {
-      "sha": "22766fd",
-      "subject": "feat(catalog): add bakery catalog with prices in cents",
-      "status": "error"
-    },
-    {
-      "sha": "e2cc251",
-      "subject": "feat(cart): price carts in integer cents",
-      "status": "fail"
-    },
-    {
-      "sha": "903fbc3",
-      "subject": "feat(stock): reserve stock on an in-memory inventory",
-      "status": "fail"
-    },
-    {
-      "sha": "b0cd2b5",
-      "subject": "feat(orders): place orders through a createBakery entry point",
-      "status": "fail"
-    },
     {
       "sha": "e836761",
       "subject": "feat(promo): support percentage promo codes",

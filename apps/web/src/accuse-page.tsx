@@ -5,6 +5,7 @@ import { trialHref } from "./route.ts";
 
 type AccusePageProps = {
   timeline: Timeline;
+  bugTitle: string;
 };
 
 function rulingText(accusation: Accusation): { title: string; body: string; tone: string } {
@@ -44,7 +45,7 @@ function rulingText(accusation: Accusation): { title: string; body: string; tone
 
 const statusLabel = { pass: "passes", fail: "fails", error: "cannot run" } as const;
 
-export function AccusePage({ timeline }: AccusePageProps) {
+export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
   const [accused, setAccused] = useState<number | undefined>(undefined);
   const [revealed, setRevealed] = useState(false);
   const accusation = accused === undefined ? undefined : accuse(timeline, accused);
@@ -67,10 +68,9 @@ export function AccusePage({ timeline }: AccusePageProps) {
         <p className="text-sm uppercase tracking-widest text-brass-400">You are the investigator</p>
         <h1 className="font-display text-4xl">Accuse a commit</h1>
         <p className="mt-3 text-white/75">
-          In {timeline.repo}, the stock of baguettes goes negative. Support blames the latest
-          inventory refactor. Pick the commit you think is guilty: the judge checks it against the
+          The case: {bugTitle}. Pick the commit you think is guilty. The judge checks it against the
           reproduction test, exactly like its alibi check. Every result below comes from a real run
-          of the test at that commit.
+          of the test at that commit in {timeline.repo}.
         </p>
       </header>
 

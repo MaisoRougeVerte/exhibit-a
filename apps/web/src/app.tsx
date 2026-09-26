@@ -42,7 +42,12 @@ export function App() {
     }
     case "accuse": {
       const timeline = findTimeline(route.caseId);
-      return timeline === undefined ? <NotFound /> : <AccusePage timeline={timeline} />;
+      const caseFile = findCase(route.caseId);
+      return timeline === undefined || caseFile === undefined ? (
+        <NotFound />
+      ) : (
+        <AccusePage timeline={timeline} bugTitle={caseFile.bugReport.title} />
+      );
     }
     case "dashboard":
       return <DashboardPage />;

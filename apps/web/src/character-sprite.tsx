@@ -1,6 +1,7 @@
 import type { Expression } from "@exhibit-a/schema";
 import { motion, useReducedMotion } from "motion/react";
-import { spriteFor } from "./art.ts";
+import { useEffect, useState } from "react";
+import { bustFrames, spriteFor } from "./art.ts";
 import type { Speaker } from "./scene.ts";
 import { speakerStyles } from "./speakers.ts";
 
@@ -10,10 +11,25 @@ type CharacterSpriteProps = {
   talking: boolean;
 };
 
+const FLAP_MS = 130;
+
+/** Alternates between two frames while `active`, like a mouth flap. */
+function useFlap(active: boolean): boolean {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    const timer = window.setInterval(() => setOpen((current) => !current), FLAP_MS);
+    return () => window.clearInterval(timer);
+  }, [active]);
+  return active && open;
+}
+
 export function CharacterSprite({ speaker, expression, talking }: CharacterSpriteProps) {
   const reduceMotion = useReducedMotion() ?? false;
   const style = speakerStyles[speaker];
   const sprite = spriteFor(speaker, expression, talking);
+  const frames = bustFrames(speaker, expression);
+  const mouthOpen = useFlap(talking && frames?.talk !== undefined);
   if (sprite?.fullFrame === true) {
     return (
       <img
@@ -57,7 +73,7 @@ export function CharacterSprite({ speaker, expression, talking }: CharacterSprit
         </svg>
       ) : (
         <img
-          src={sprite.url}
+          src={mouthOpen && frames?.talk !== undefined ? frames.talk : (frames?.idle ?? sprite.url)}
           alt={`${style.name}, ${expression}`}
           className="h-full object-contain object-bottom"
         />

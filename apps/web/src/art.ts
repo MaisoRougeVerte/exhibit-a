@@ -20,6 +20,18 @@ const localArt = new Set(localArtFiles);
 
 export type Sprite = { url: string; fullFrame: boolean };
 
+/** Idle frame plus an optional mouth-open frame, for lip flap while a line is typed. */
+export type SpriteFrames = { idle: string; talk: string | undefined };
+
+/** Frames of shipped bust sprites for one expression, falling back to the neutral pose. */
+export function bustFrames(speaker: Speaker, expression: Expression): SpriteFrames | undefined {
+  const url = (name: string) => shippedSprites[`./assets/characters/${speaker}/${name}.png`];
+  const idle = url(`${expression}-idle`);
+  if (idle !== undefined) return { idle, talk: url(`${expression}-talk`) };
+  const neutral = url("neutral-idle");
+  return neutral === undefined ? undefined : { idle: neutral, talk: url("neutral-talk") };
+}
+
 function pick(table: Record<string, string>, keys: readonly string[]): string | undefined {
   for (const key of keys) {
     const url = table[key];

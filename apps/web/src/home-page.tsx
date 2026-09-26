@@ -1,6 +1,6 @@
 import { bundledCases } from "./cases.ts";
 import { accuseHref, reportHref, trialHref } from "./route.ts";
-import { firstTimeline } from "./timelines.ts";
+import { findTimeline, firstTimeline } from "./timelines.ts";
 
 const roles = [
   {
@@ -98,6 +98,14 @@ export function HomePage() {
                 >
                   Report
                 </a>
+                {findTimeline(caseFile.id) !== undefined && (
+                  <a
+                    href={accuseHref(caseFile.id)}
+                    className="rounded border border-brass-400 px-4 py-2 text-brass-400"
+                  >
+                    Accuse a commit
+                  </a>
+                )}
               </div>
             </li>
           ))}

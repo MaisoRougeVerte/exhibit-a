@@ -13,13 +13,22 @@ export type TimelineRequest = {
   testCmd: string[];
   file: string;
   testName?: string | undefined;
+  /** First commit to include; earlier ones predate the code under test. */
+  since?: string | undefined;
 };
 
 /** Runs today's reproduction test against every commit, one checkout at a time. */
 export async function buildTimeline(request: TimelineRequest): Promise<Timeline> {
   const { stdout } = await execFileAsync(
     "git",
-    ["-C", request.repoDir, "log", "--reverse", "--format=%h%x09%s"],
+    [
+      "-C",
+      request.repoDir,
+      "log",
+      "--reverse",
+      "--format=%h%x09%s",
+      ...(request.since === undefined ? [] : ["--ancestry-path", `${request.since}~1..HEAD`]),
+    ],
     { signal: AbortSignal.timeout(10_000) },
   );
   const commits: TimelineCommit[] = [];

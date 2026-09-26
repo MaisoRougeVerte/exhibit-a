@@ -11,13 +11,14 @@ const { values } = parseArgs({
     "test-name": { type: "string" },
     repo: { type: "string", default: "demo-repo" },
     "repo-name": { type: "string" },
+    since: { type: "string" },
     out: { type: "string" },
   },
 });
 
 if (values.case === undefined || values.file === undefined || values.out === undefined) {
   console.error(
-    "usage: pnpm timeline --case <id> --file <test file> [--test-name <name>] [--repo <path>] [--repo-name <name>] --out <json>",
+    "usage: pnpm timeline --case <id> --file <test file> [--test-name <name>] [--repo <path>] [--repo-name <name>] [--since <commit>] --out <json>",
   );
   process.exit(1);
 }
@@ -31,6 +32,7 @@ const timeline = await buildTimeline({
   testCmd: config.test,
   file: values.file,
   testName: values["test-name"],
+  since: values.since,
 });
 await writeFile(values.out, `${JSON.stringify(timeline, null, 2)}\n`, "utf8");
 console.log(`timeline: ${timeline.commits.length} commits written to ${values.out}`);

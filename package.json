@@ -1,5 +1,5 @@
 {
-  "name": "objection",
+  "name": "exhibit-a",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.3.0",
@@ -7,8 +7,8 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "pnpm --filter @objection/web dev",
-    "build": "pnpm --filter @objection/web build",
+    "dev": "pnpm --filter @exhibit-a/web dev",
+    "build": "pnpm --filter @exhibit-a/web build",
     "typecheck": "tsc -p tsconfig.json && pnpm -r --parallel run typecheck",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

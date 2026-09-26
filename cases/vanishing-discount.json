@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "id": "vanishing-discount",
+  "title": "Customers charged one cent too much with a promo code",
+  "source": "bob-ide",
+  "recordedAt": "2026-09-26T14:09:55+02:00",
+  "repo": {
+    "name": "MaisoRougeVerte/crumb-and-co",
+    "head": "7dee901"
+  },
+  "bugReport": {
+    "title": "Customers charged one cent too much with a promo code",
+    "body": "A customer ordered one baguette tradition and one pain au chocolat with the code BIENVENUE10. The receipt shows 2.30 €. The price list gives 2.55 € minus 10%, and the shop policy rounds the discount to the nearest cent, so the customer expected 2.29 €. Several similar complaints since the last release. Not every cart is affected."
+  },
+  "events": [
+    {
+      "type": "narration",
+      "line": "The courtroom assembles. A centime has gone missing. The promo code stands accused of highway robbery — one cent at a time."
+    },
+    {
+      "type": "narration",
+      "line": "The prosecutor finds no further objections. The evidence stands."
+    },
+    {
+      "type": "claim",
+      "id": "claim-repro",
+      "speaker": "investigator",
+      "expression": "confident",
+      "line": "The current code charges 230 cents for a cart that should cost 229 cents with BIENVENUE10. The bug is reproducible today.",
+      "evidence": [
+        {
+          "id": "ev-repro-fail",
+          "kind": "test",
+          "file": "tests/repro/vanishing-discount.test.ts",
+          "testName": "promo code BIENVENUE10 gives 229 cents on a 255-cent cart",
+          "expect": "fail"
+        }
+      ]
+    },
+    {
+      "type": "claim",
+      "id": "claim-culprit",
+      "speaker": "investigator",
+      "expression": "confident",
+      "line": "Commit 3cabb03 is the culprit. It swapped integer-cent discount rounding for floating-point euro arithmetic, causing 2.295 to round up to 2.30 instead of down.",
+      "evidence": [
+        {
+          "id": "ev-alibi-parent",
+          "kind": "test-at-commit",
+          "file": "tests/repro/vanishing-discount.test.ts",
+          "testName": "promo code BIENVENUE10 gives 229 cents on a 255-cent cart",
+          "commit": "3cabb03^",
+          "expect": "pass"
+        },
+        {
+          "id": "ev-bisect",
+          "kind": "bisect",
+          "file": "tests/repro/vanishing-discount.test.ts",
+          "testName": "promo code BIENVENUE10 gives 229 cents on a 255-cent cart",
+          "good": "e836761",
+          "bad": "7dee901",
+          "expectCulprit": "3cabb03"
+        }
+      ]
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-repro-fail",
+      "status": "upheld",
+      "exitCode": 1,
+      "excerpt": "promo code BIENVENUE10 gives 229 cents on a 255-cent cart\nAssertionError: expected 230 to be 229 // Object.is equality\n    at <repo>/tests/repro/vanishing-discount.test.ts:15:28\n    at file://<repo>/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file://<repo>/node_modules/.pnpm/vitest@5.0.1_@types+node@26.6.2_vite@8.3.1_@types+node@26.6.2_/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26",
+      "durationMs": 243
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-alibi-parent",
+      "status": "upheld",
+      "exitCode": 0,
+      "excerpt": "1 test(s) passed",
+      "durationMs": 245
+    },
+    {
+      "type": "ruling",
+      "evidenceId": "ev-bisect",
+      "status": "upheld",
+      "exitCode": 0,
+      "excerpt": "bisect: first bad commit is 3cabb03667ce (expected 3cabb03)",
+      "durationMs": 1523
+    },
+    {
+      "type": "verdict",
+      "rootCause": "Commit 3cabb03 refactored priceCart to work in euros with a single rounding. The old code rounded the discount itself (Math.round(subtotalCents * percent / 100)), matching the shop policy. The new code applies the discount as a float and rounds the total, so 255 * 0.9 = 229.5 → Math.round(229.5 * 100 / 100) = 230, overcharging by one cent.",
+      "culpritCommit": "3cabb03",
+      "upheldClaims": ["claim-repro", "claim-culprit"],
+      "regressionTest": {
+        "file": "tests/repro/vanishing-discount.test.ts",
+        "testName": "promo code BIENVENUE10 gives 229 cents on a 255-cent cart"
+      },
+      "fixSummary": "Round the discount amount in integer cents, not the total. Compute discountCents = Math.round(subtotalCents * discountPercent / 100) and return totalCents = subtotalCents - discountCents, as the code did before 3cabb03.",
+      "line": "The centime was never lost — it was rounded away. Commit 3cabb03 changed the rounding order. The fix is to round the discount, not the total."
+    }
+  ]
+}

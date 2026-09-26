@@ -1,0 +1,108 @@
+name: Exhibit A trial
+description: Put a bug issue on trial. IBM Bob investigates, a prosecutor objects, and a deterministic judge re-runs every piece of evidence.
+branding:
+  icon: check-square
+  color: yellow
+
+inputs:
+  bob-api-key:
+    description: IBM Bob API key with Inference scope. Pass it from a repository secret, never inline.
+    required: true
+  max-cost:
+    description: Maximum Bobcoins the trial may spend. Bob Shell stops at this cap.
+    required: false
+    default: "5"
+  site-url:
+    description: Exhibit A site used for the replay link.
+    required: false
+    default: https://exhibit-a-alpha.vercel.app
+  github-token:
+    description: Token used to publish the trial and comment on the issue.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check out the repository on trial
+      uses: actions/checkout@v7
+      with:
+        path: target
+        fetch-depth: 0
+        token: ${{ inputs.github-token }}
+
+    - name: Set up Node
+      uses: actions/setup-node@v7
+      with:
+        node-version: 24
+
+    - name: Set up pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        package_json_file: ${{ github.action_path }}/../package.json
+
+    - name: Install Exhibit A and link the repository as the demo repo
+      shell: bash
+      working-directory: ${{ github.action_path }}/..
+      run: |
+        pnpm install --frozen-lockfile --ignore-scripts
+        rm -rf demo-repo
+        ln -s "$GITHUB_WORKSPACE/target" demo-repo
+
+    - name: Install the repository's dependencies
+      shell: bash
+      working-directory: target
+      # The install command is an argument array from .exhibit-a.json: no shell interpolation.
+      run: node -e 'const {execFileSync}=require("node:child_process");const c=require("./.exhibit-a.json");if(c.install){const[b,...a]=c.install;execFileSync(b,a,{stdio:"inherit"});}'
+
+    - name: File the bug report from the issue
+      shell: bash
+      working-directory: target
+      env:
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+        ISSUE_BODY: ${{ github.event.issue.body }}
+      # Issue text arrives through env vars, never through the script body, to rule out injection.
+      run: node -e 'const fs=require("node:fs");fs.mkdirSync("docs/bug-reports",{recursive:true});fs.writeFileSync(`docs/bug-reports/issue-${process.env.ISSUE_NUMBER}.md`,`# ${process.env.ISSUE_TITLE}\n\n${process.env.ISSUE_BODY ?? ""}\n`)'
+
+    - name: Install IBM Bob Shell (pinned, checksum verified)
+      shell: bash
+      env:
+        BOB_SHELL_VERSION: "2.0.5"
+      run: |
+        base="https://s3.us-south.cloud-object-storage.appdomain.cloud/bob-shell"
+        curl -fsSL "$base/bobshell-${BOB_SHELL_VERSION}.tgz" -o "$RUNNER_TEMP/bobshell.tgz"
+        expected="$(curl -fsSL "$base/bobshell-${BOB_SHELL_VERSION}.tgz.sha256" | cut -d' ' -f1)"
+        echo "${expected}  $RUNNER_TEMP/bobshell.tgz" | sha256sum -c -
+        npm install -g --no-audit --no-fund "$RUNNER_TEMP/bobshell.tgz"
+
+    - name: Run the trial with Bob
+      shell: bash
+      working-directory: ${{ github.action_path }}/..
+      env:
+        BOB_API_KEY: ${{ inputs.bob-api-key }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        MAX_COST: ${{ inputs.max-cost }}
+      run: |
+        bob --version
+        bob run --accept-license --trust --mode tribunal --max-cost "$MAX_COST" --format stream-json \
+          "Run the trial for the bug report demo-repo/docs/bug-reports/issue-${ISSUE_NUMBER}.md. Case id: issue-${ISSUE_NUMBER}." \
+          > bob-trial.ndjson
+        test -f "cases/issue-${ISSUE_NUMBER}.json"
+
+    - name: Re-run every piece of evidence
+      shell: bash
+      working-directory: ${{ github.action_path }}/..
+      env:
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+      run: pnpm judge "cases/issue-${ISSUE_NUMBER}.json"
+
+    - name: Publish the trial and comment on the issue
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        SITE_URL: ${{ inputs.site-url }}
+        REPO: ${{ github.repository }}
+        EXHIBIT_A: ${{ github.action_path }}/..
+      run: bash "$EXHIBIT_A/action/publish.sh"

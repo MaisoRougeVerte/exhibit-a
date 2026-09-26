@@ -1,0 +1,23 @@
+# Copy to .github/workflows/exhibit-a.yml in the repository you want to put on trial.
+# Setup: add a `.exhibit-a.json` at the repo root with your test command, add the
+# BOB_API_KEY repository secret, then label any bug issue `on-trial`.
+name: Exhibit A
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  trial:
+    if: github.event.label.name == 'on-trial'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: MaisoRougeVerte/exhibit-a/action@main
+        with:
+          bob-api-key: ${{ secrets.BOB_API_KEY }}
+          max-cost: "5"

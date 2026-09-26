@@ -1,0 +1,16 @@
+{
+  "name": "@exhibit-a/judge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/run.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@exhibit-a/schema": "workspace:*",
+    "zod": "4.6.5"
+  }
+}

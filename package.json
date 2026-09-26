@@ -14,7 +14,8 @@
     "lint:fix": "biome check --write .",
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "judge": "node --experimental-strip-types judge/src/cli.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",

@@ -61,6 +61,15 @@ importers:
         specifier: ^8.3.1
         version: 8.3.1(@types/node@26.6.2)(jiti@2.7.0)
 
+  judge:
+    dependencies:
+      '@exhibit-a/schema':
+        specifier: workspace:*
+        version: link:../packages/schema
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+
   packages/schema:
     dependencies:
       zod:

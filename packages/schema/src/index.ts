@@ -5,12 +5,13 @@ import { checkIntegrity } from "./integrity.ts";
 export { assertNever } from "./assert-never.ts";
 export type {
   CaseEvent,
+  CaseFileShape,
   ClaimEvent,
   Evidence,
   Expression,
   VerdictEvent,
 } from "./case-file.ts";
-export { caseEventSchema, evidenceSchema, expressionSchema } from "./case-file.ts";
+export { caseEventSchema, caseFileShape, evidenceSchema, expressionSchema } from "./case-file.ts";
 export type { IntegrityIssue } from "./integrity.ts";
 export { checkIntegrity } from "./integrity.ts";
 

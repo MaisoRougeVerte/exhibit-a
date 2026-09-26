@@ -1,9 +1,10 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { z } from "zod";
 import { runJudge } from "./run.ts";
 
 const execFileAsync = promisify(execFile);
@@ -12,11 +13,12 @@ const execFileAsync = promisify(execFile);
 // Minimal fake test runner
 //
 // To avoid any npm/pnpm installation in test temp dirs, the tests use a tiny
-// shell script as the test runner.  The script reads the test FILE and decides
-// what to do based on its content:
-//   - file contains "PASS"  → exit 0
-//   - file contains "FAIL"  → exit 1, print "AssertionError: test failed"
-//   - anything else         → exit 1, print "SyntaxError: cannot parse"
+// shell script as the test runner. Like a real bug, the outcome depends on the code
+// (`src/behavior.txt`), not on the test file, which only has to exist:
+//   - missing test file       → exit 1, "No test files found"
+//   - behavior "PASS"         → exit 0
+//   - behavior "FAIL"         → exit 1, "AssertionError"
+//   - anything else           → exit 1, "SyntaxError"
 //
 // This lets us test all ruling outcomes without a real test framework.
 // ---------------------------------------------------------------------------
@@ -33,16 +35,16 @@ for arg in "$@"; do
     *) FILE="$arg" ;;
   esac
 done
-if [ -z "$FILE" ]; then echo "no file given"; exit 1; fi
-CONTENT=$(cat "$FILE" 2>/dev/null || echo "")
-if echo "$CONTENT" | grep -q "PASS"; then
+if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then echo "No test files found: $FILE"; exit 1; fi
+BEHAVIOR=$(cat src/behavior.txt 2>/dev/null || echo "")
+if echo "$BEHAVIOR" | grep -q "PASS"; then
   echo "✓ test passed"
   exit 0
-elif echo "$CONTENT" | grep -q "FAIL"; then
+elif echo "$BEHAVIOR" | grep -q "FAIL"; then
   echo "AssertionError: expected true to equal false"
   exit 1
 else
-  echo "SyntaxError: cannot parse test file"
+  echo "SyntaxError: cannot parse src/behavior.txt"
   exit 1
 fi
 `;
@@ -74,7 +76,9 @@ async function makeTestRepo(opts?: { skipGitInit?: boolean }): Promise<TestRepo>
     });
     // First commit — passing test.
     await mkdir(join(dir, "tests"), { recursive: true });
-    await writeFile(join(dir, "tests", "subject.test.ts"), "PASS");
+    await writeFile(join(dir, "tests", "subject.test.ts"), "test");
+    await mkdir(join(dir, "src"), { recursive: true });
+    await writeFile(join(dir, "src", "behavior.txt"), "PASS");
     await execFileAsync("git", ["-C", dir, "add", "-A"], { signal: AbortSignal.timeout(5_000) });
     await execFileAsync("git", ["-C", dir, "commit", "-m", "feat: initial"], {
       signal: AbortSignal.timeout(5_000),
@@ -93,8 +97,8 @@ async function makeTestRepo(opts?: { skipGitInit?: boolean }): Promise<TestRepo>
 
 /** Commits a change to the test file and returns the new full SHA. */
 async function commitChange(repoDir: string, content: string, message: string): Promise<string> {
-  await mkdir(join(repoDir, "tests"), { recursive: true });
-  await writeFile(join(repoDir, "tests", "subject.test.ts"), content);
+  await mkdir(join(repoDir, "src"), { recursive: true });
+  await writeFile(join(repoDir, "src", "behavior.txt"), content);
   await execFileAsync("git", ["-C", repoDir, "add", "-A"], { signal: AbortSignal.timeout(5_000) });
   await execFileAsync("git", ["-C", repoDir, "commit", "-m", message], {
     signal: AbortSignal.timeout(5_000),
@@ -134,13 +138,18 @@ function makeCase(events: unknown[]) {
 // Helpers to read back the ruling from a written case file
 // ---------------------------------------------------------------------------
 
-type WrittenEvent = { type: string; status?: string; evidenceId?: string };
+const writtenCaseSchema = z.object({
+  events: z.array(
+    z.object({
+      type: z.string(),
+      status: z.string().optional(),
+      evidenceId: z.string().optional(),
+    }),
+  ),
+});
 
-async function readRuling(caseFile: string, evidenceId: string): Promise<WrittenEvent | undefined> {
-  const { readFile } = await import("node:fs/promises");
-  const written = JSON.parse(await readFile(caseFile, "utf8")) as {
-    events: WrittenEvent[];
-  };
+async function readRuling(caseFile: string, evidenceId: string) {
+  const written = writtenCaseSchema.parse(JSON.parse(await readFile(caseFile, "utf8")));
   return written.events.find((e) => e.type === "ruling" && e.evidenceId === evidenceId);
 }
 
@@ -165,7 +174,7 @@ afterEach(async () => {
 describe("runJudge", () => {
   describe("test evidence", () => {
     it("upholds a test evidence item with expect:fail when the test fails", async () => {
-      await writeFile(join(repo.dir, "tests", "subject.test.ts"), "FAIL");
+      await writeFile(join(repo.dir, "src", "behavior.txt"), "FAIL");
 
       const caseData = makeCase([
         {
@@ -252,7 +261,7 @@ describe("runJudge", () => {
     it("upholds when the test fails at the target commit", async () => {
       const failSha = await commitChange(repo.dir, "FAIL", "feat: introduce bug");
       // Restore working tree to PASS.
-      await writeFile(join(repo.dir, "tests", "subject.test.ts"), "PASS");
+      await writeFile(join(repo.dir, "src", "behavior.txt"), "PASS");
       await execFileAsync("git", ["-C", repo.dir, "add", "-A"], {
         signal: AbortSignal.timeout(5_000),
       });
@@ -285,6 +294,72 @@ describe("runJudge", () => {
       const result = await runJudge(caseFile, repo.dir);
       expect(result).toMatchObject({ ok: true, ruledCount: 1 });
       expect(await readRuling(caseFile, "ev-1")).toMatchObject({ status: "upheld" });
+    });
+
+    it("carries today's reproduction test into the checked-out commit", async () => {
+      const failSha = await commitChange(repo.dir, "FAIL", "feat: introduce bug");
+      await commitChange(repo.dir, "PASS", "fix: restore");
+      // Written today, never committed: older commits do not contain it.
+      await mkdir(join(repo.dir, "tests", "repro"), { recursive: true });
+      await writeFile(join(repo.dir, "tests", "repro", "bug.test.ts"), "test");
+
+      const caseFile = join(repo.dir, "case.json");
+      await writeFile(
+        caseFile,
+        JSON.stringify(
+          makeCase([
+            {
+              type: "claim",
+              id: "claim-1",
+              speaker: "investigator",
+              expression: "confident",
+              line: "The bug was present at that commit.",
+              evidence: [
+                {
+                  id: "ev-1",
+                  kind: "test-at-commit",
+                  file: "tests/repro/bug.test.ts",
+                  commit: failSha.slice(0, 7),
+                  expect: "fail",
+                },
+              ],
+            },
+          ]),
+        ),
+      );
+
+      expect(await runJudge(caseFile, repo.dir)).toMatchObject({ ok: true, ruledCount: 1 });
+      expect(await readRuling(caseFile, "ev-1")).toMatchObject({ status: "upheld" });
+    });
+
+    it("rules an unknown commit as an error instead of crashing", async () => {
+      const caseFile = join(repo.dir, "case.json");
+      await writeFile(
+        caseFile,
+        JSON.stringify(
+          makeCase([
+            {
+              type: "claim",
+              id: "claim-1",
+              speaker: "investigator",
+              expression: "confident",
+              line: "The bug was present at that commit.",
+              evidence: [
+                {
+                  id: "ev-1",
+                  kind: "test-at-commit",
+                  file: "tests/subject.test.ts",
+                  commit: "deadbee",
+                  expect: "fail",
+                },
+              ],
+            },
+          ]),
+        ),
+      );
+
+      expect(await runJudge(caseFile, repo.dir)).toMatchObject({ ok: true, ruledCount: 1 });
+      expect(await readRuling(caseFile, "ev-1")).toMatchObject({ status: "error" });
     });
 
     it("rejects when the test passes at the target commit (alibi)", async () => {
@@ -580,10 +655,7 @@ describe("runJudge", () => {
       const result = await runJudge(caseFile, repo.dir);
       expect(result).toMatchObject({ ok: true, ruledCount: 1 });
 
-      const { readFile } = await import("node:fs/promises");
-      const written = JSON.parse(await readFile(caseFile, "utf8")) as {
-        events: Array<{ type: string }>;
-      };
+      const written = writtenCaseSchema.parse(JSON.parse(await readFile(caseFile, "utf8")));
       expect(written.events.at(-1)?.type).toBe("verdict");
       const rulingIdx = written.events.findIndex((e) => e.type === "ruling");
       const verdictIdx = written.events.findLastIndex((e) => e.type === "verdict");

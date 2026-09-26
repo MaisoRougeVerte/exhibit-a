@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import type { Evidence } from "@exhibit-a/schema";
 import { assertNever } from "@exhibit-a/schema";
-import { runTest } from "./run-test.ts";
+import { runTest, type TestOutcome } from "./run-test.ts";
 import { createWorktree } from "./worktree.ts";
 
 const execFileAsync = promisify(execFile);
@@ -61,13 +61,8 @@ async function ruleTestAtCommit(
   repoDir: string,
   testCmd: string[],
 ): Promise<RulingResult> {
-  const wt = await createWorktree(repoDir, evidence.commit);
-  try {
-    const outcome = await runTest(testCmd, wt.dir, evidence.file, evidence.testName);
-    return outcomeToRuling(outcome, evidence.expect);
-  } finally {
-    await wt.cleanup();
-  }
+  const outcome = await runTestAtRevision(repoDir, testCmd, evidence, evidence.commit);
+  return outcomeToRuling(outcome, evidence.expect);
 }
 
 // ---------------------------------------------------------------------------
@@ -200,18 +195,28 @@ async function resolveRevision(repoDir: string, rev: string): Promise<string | n
   }
 }
 
-type RunResult = { status: "pass" | "fail" | "error"; exitCode: number | null; output: string };
-
+/** Runs the evidence's test against the code at `revision`, carrying today's test file. */
 async function runTestAtRevision(
   repoDir: string,
   testCmd: string[],
-  evidence: Extract<Evidence, { kind: "bisect" }>,
-  sha: string,
-): Promise<RunResult> {
-  const wt = await createWorktree(repoDir, sha);
+  evidence: { file: string; testName?: string | undefined },
+  revision: string,
+): Promise<TestOutcome> {
+  const start = Date.now();
+  let wt: Awaited<ReturnType<typeof createWorktree>>;
   try {
-    const outcome = await runTest(testCmd, wt.dir, evidence.file, evidence.testName);
-    return outcome;
+    wt = await createWorktree(repoDir, revision, [evidence.file]);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      status: "error",
+      exitCode: null,
+      output: `could not check out ${revision}: ${message}`,
+      durationMs: Date.now() - start,
+    };
+  }
+  try {
+    return await runTest(testCmd, wt.dir, evidence.file, evidence.testName);
   } finally {
     await wt.cleanup();
   }

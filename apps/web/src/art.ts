@@ -4,7 +4,7 @@ import type { Position } from "./positions.ts";
 import type { Speaker } from "./scene.ts";
 
 // Shipped art: bust sprites and backgrounds dropped into src/assets/.
-const shippedSprites = import.meta.glob<string>("./assets/characters/*/*.png", {
+const shippedSprites = import.meta.glob<string>("./assets/characters/*/*.{png,webp}", {
   eager: true,
   import: "default",
   query: "?url",
@@ -25,7 +25,9 @@ export type SpriteFrames = { idle: string; talk: string | undefined };
 
 /** Frames of shipped bust sprites for one expression, falling back to the neutral pose. */
 export function bustFrames(speaker: Speaker, expression: Expression): SpriteFrames | undefined {
-  const url = (name: string) => shippedSprites[`./assets/characters/${speaker}/${name}.png`];
+  const url = (name: string) =>
+    shippedSprites[`./assets/characters/${speaker}/${name}.webp`] ??
+    shippedSprites[`./assets/characters/${speaker}/${name}.png`];
   const idle = url(`${expression}-idle`);
   if (idle !== undefined) return { idle, talk: url(`${expression}-talk`) };
   const neutral = url("neutral-idle");
@@ -40,7 +42,7 @@ function pick(table: Record<string, string>, keys: readonly string[]): string | 
   return undefined;
 }
 
-/** Full-frame sprites share the background's frame; bust sprites stand behind the desk. */
+/** Shipped bust sprites win; the dev-only full-frame test art is a fallback. */
 export function spriteFor(
   speaker: Speaker,
   expression: Expression,
@@ -48,23 +50,24 @@ export function spriteFor(
 ): Sprite | undefined {
   const variants = talking ? ["talk", "idle"] : ["idle"];
   const names = [...variants.map((v) => `${expression}-${v}`), "neutral-idle"];
+  const shipped = pick(
+    shippedSprites,
+    names.flatMap((n) =>
+      ["webp", "png"].map((ext) => `./assets/characters/${speaker}/${n}.${ext}`),
+    ),
+  );
+  if (shipped !== undefined) return { url: shipped, fullFrame: false };
   const local = names
     .map((n) => `characters/${speaker}/${n}.gif`)
     .find((path) => localArt.has(path));
-  if (local !== undefined) return { url: `/${local}`, fullFrame: true };
-  const shipped = pick(
-    shippedSprites,
-    names.map((n) => `./assets/characters/${speaker}/${n}.png`),
-  );
-  return shipped === undefined ? undefined : { url: shipped, fullFrame: false };
+  return local === undefined ? undefined : { url: `/${local}`, fullFrame: true };
 }
 
 export function backgroundFor(position: Position): string | undefined {
   return (
-    (localArt.has(`backgrounds/${position}.png`) ? `/backgrounds/${position}.png` : undefined) ??
     pick(
       shippedBackgrounds,
-      ["png", "jpg", "webp"].map((ext) => `./assets/backgrounds/${position}.${ext}`),
-    )
+      ["webp", "png", "jpg"].map((ext) => `./assets/backgrounds/${position}.${ext}`),
+    ) ?? (localArt.has(`backgrounds/${position}.png`) ? `/backgrounds/${position}.png` : undefined)
   );
 }

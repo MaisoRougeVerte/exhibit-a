@@ -18,11 +18,13 @@ const DESK_PANEL_X = [70, 330, 590, 850, 1110, 1370];
 export function CourtroomBackdrop({ position }: { position: Position }) {
   const image = backgroundFor(position);
   if (image !== undefined) {
+    // Dev-only test art is low-resolution pixel art; shipped art is smooth.
+    const pixelArt = image.startsWith("/backgrounds/");
     return (
       <img
         src={image}
         alt=""
-        className="absolute inset-0 size-full object-cover [image-rendering:pixelated]"
+        className={`absolute inset-0 size-full object-cover ${pixelArt ? "[image-rendering:pixelated]" : ""}`}
       />
     );
   }

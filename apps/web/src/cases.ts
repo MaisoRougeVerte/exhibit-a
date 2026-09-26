@@ -18,7 +18,10 @@ function load(modules: Record<string, unknown>): CaseFile[] {
   });
 }
 
-export const bundledCases: readonly CaseFile[] = [...load(recorded), ...load(fixtures)];
+// Hand-written fixtures help development; the public site shows recorded Bob trials only.
+export const bundledCases: readonly CaseFile[] = import.meta.env.DEV
+  ? [...load(recorded), ...load(fixtures)]
+  : load(recorded);
 
 export function findCase(caseId: string): CaseFile | undefined {
   return bundledCases.find((caseFile) => caseFile.id === caseId);

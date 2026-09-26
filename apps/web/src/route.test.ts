@@ -18,3 +18,19 @@ describe("parseRoute", () => {
     expect(parseRoute(trialHref("odd id"))).toEqual({ page: "trial", caseId: "odd id" });
   });
 });
+
+describe("parseRoute, service pages", () => {
+  it.each([
+    ["#/dashboard", { page: "dashboard" }],
+    ["#/try", { page: "try" }],
+    ["#/accuse/framed-commit", { page: "accuse", caseId: "framed-commit" }],
+    [
+      "#/r/acme/shop/framed-commit.json",
+      { page: "remote-trial", owner: "acme", repo: "shop", file: "framed-commit.json" },
+    ],
+    ["#/r/acme/shop", { page: "not-found" }],
+    ["#/dashboard/extra", { page: "not-found" }],
+  ])("parses %s", (hash, route) => {
+    expect(parseRoute(hash)).toEqual(route);
+  });
+});

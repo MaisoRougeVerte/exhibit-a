@@ -1,5 +1,6 @@
 import { bundledCases } from "./cases.ts";
-import { reportHref, trialHref } from "./route.ts";
+import { accuseHref, reportHref, trialHref } from "./route.ts";
+import { firstTimeline } from "./timelines.ts";
 
 const roles = [
   {
@@ -17,6 +18,7 @@ const roles = [
 ];
 
 export function HomePage() {
+  const timeline = firstTimeline();
   return (
     <main className="min-h-dvh bg-stone-950 text-white">
       <section className="bg-gradient-to-b from-wood-800 to-stone-950 px-6 py-20 text-center">
@@ -28,14 +30,30 @@ export function HomePage() {
           66% of developers say AI answers are "almost right, but not quite". Exhibit A puts the bug
           on trial: no claim reaches the verdict unless a deterministic judge re-ran its evidence.
         </p>
-        {bundledCases[0] !== undefined && (
+        <div className="mt-10 flex flex-wrap justify-center gap-4">
+          {bundledCases[0] !== undefined && (
+            <a
+              href={trialHref(bundledCases[0].id)}
+              className="rounded-lg bg-brass-500 px-6 py-3 text-lg font-semibold text-wood-950 hover:bg-brass-400"
+            >
+              Watch a trial
+            </a>
+          )}
+          {timeline !== undefined && (
+            <a
+              href={accuseHref(timeline.caseId)}
+              className="rounded-lg border border-brass-400 px-6 py-3 text-lg font-semibold text-brass-400 hover:bg-brass-500/10"
+            >
+              Accuse a commit yourself
+            </a>
+          )}
           <a
-            href={trialHref(bundledCases[0].id)}
-            className="mt-10 inline-block rounded-lg bg-brass-500 px-6 py-3 text-lg font-semibold text-wood-950 hover:bg-brass-400"
+            href="#/try"
+            className="rounded-lg px-6 py-3 text-lg text-white/80 underline hover:text-white"
           >
-            Watch a trial
+            Try it
           </a>
-        )}
+        </div>
       </section>
 
       <section className="mx-auto grid max-w-5xl gap-6 px-6 py-16 sm:grid-cols-3">
@@ -48,7 +66,12 @@ export function HomePage() {
       </section>
 
       <section className="mx-auto max-w-5xl px-6 pb-20">
-        <h2 className="font-display text-3xl">Trials</h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-4">
+          <h2 className="font-display text-3xl">Trials</h2>
+          <a href="#/dashboard" className="text-sm text-brass-400 underline">
+            Connect your repository
+          </a>
+        </div>
         <ul className="mt-6 grid gap-4">
           {bundledCases.map((caseFile) => (
             <li

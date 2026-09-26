@@ -1,15 +1,20 @@
 import { assertNever } from "@exhibit-a/schema";
+import { AccusePage } from "./accuse-page.tsx";
 import { findCase } from "./cases.ts";
+import { DashboardPage } from "./dashboard-page.tsx";
 import { HomePage } from "./home-page.tsx";
+import { RemoteTrialPage } from "./remote-trial-page.tsx";
 import { ReportPage } from "./report-page.tsx";
+import { findTimeline } from "./timelines.ts";
 import { TrialPage } from "./trial-page.tsx";
+import { TryPage } from "./try-page.tsx";
 import { useRoute } from "./use-route.ts";
 
 function NotFound() {
   return (
     <main className="grid min-h-dvh place-items-center bg-stone-950 text-white">
       <p>
-        No such trial.{" "}
+        Nothing here.{" "}
         <a href="#/" className="text-brass-400 underline">
           Back to the court
         </a>
@@ -35,6 +40,16 @@ export function App() {
       const caseFile = findCase(route.caseId);
       return caseFile === undefined ? <NotFound /> : <ReportPage caseFile={caseFile} />;
     }
+    case "accuse": {
+      const timeline = findTimeline(route.caseId);
+      return timeline === undefined ? <NotFound /> : <AccusePage timeline={timeline} />;
+    }
+    case "dashboard":
+      return <DashboardPage />;
+    case "remote-trial":
+      return <RemoteTrialPage key={`${route.owner}/${route.repo}/${route.file}`} {...route} />;
+    case "try":
+      return <TryPage />;
     case "not-found":
       return <NotFound />;
     default:

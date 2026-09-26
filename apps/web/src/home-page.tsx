@@ -1,4 +1,5 @@
 import { bundledCases } from "./cases.ts";
+import { CourtroomBackdrop } from "./courtroom-backdrop.tsx";
 import { accuseHref, reportHref, trialHref } from "./route.ts";
 import { findTimeline, firstTimeline } from "./timelines.ts";
 
@@ -21,38 +22,50 @@ export function HomePage() {
   const timeline = firstTimeline();
   return (
     <main className="min-h-dvh bg-stone-950 text-white">
-      <section className="bg-gradient-to-b from-wood-800 to-stone-950 px-6 py-20 text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-brass-400">Exhibit A</p>
-        <h1 className="mx-auto mt-4 max-w-3xl font-display text-5xl leading-tight sm:text-6xl">
-          Your AI says it found the bug. Make it prove it.
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-white/75">
-          66% of developers say AI answers are "almost right, but not quite". Exhibit A puts the bug
-          on trial: no claim reaches the verdict unless a deterministic judge re-ran its evidence.
-        </p>
-        <div className="mt-10 flex flex-wrap justify-center gap-4">
-          {bundledCases[0] !== undefined && (
-            <a
-              href={trialHref(bundledCases[0].id)}
-              className="rounded-lg bg-brass-500 px-6 py-3 text-lg font-semibold text-wood-950 hover:bg-brass-400"
-            >
-              Watch a trial
-            </a>
-          )}
-          {timeline !== undefined && (
-            <a
-              href={accuseHref(timeline.caseId)}
-              className="rounded-lg border border-brass-400 px-6 py-3 text-lg font-semibold text-brass-400 hover:bg-brass-500/10"
-            >
-              Accuse a commit yourself
-            </a>
-          )}
-          <a
-            href="#/try"
-            className="rounded-lg px-6 py-3 text-lg text-white/80 underline hover:text-white"
-          >
-            Try it
-          </a>
+      <section className="grid min-h-dvh place-items-center bg-black">
+        <div className="@container relative aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden">
+          <CourtroomBackdrop position="bench" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/85" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-[2.5cqw] px-[6%] text-center text-white">
+            <p className="font-display text-[1.6cqw] tracking-[0.6em] text-amber-300">
+              DEBUGGING ON TRIAL
+            </p>
+            <h1 className="font-display text-[9cqw] leading-none font-black tracking-wide [text-shadow:0_6px_0_rgba(0,0,0,0.7)]">
+              EXHIBIT A
+            </h1>
+            <p className="max-w-[70%] text-[2cqw] font-semibold [text-shadow:0_2px_0_rgba(0,0,0,0.9)]">
+              Your AI says it found the bug. Make it prove it.
+            </p>
+            <p className="max-w-[70%] text-[1.4cqw] text-white/80">
+              66% of developers say AI answers are "almost right, but not quite". Here, IBM Bob
+              investigates, a prosecutor objects, and a deterministic judge re-runs every piece of
+              evidence before any verdict.
+            </p>
+            <nav className="mt-[1cqw] flex flex-col items-stretch gap-[0.9cqw] text-[1.8cqw]">
+              {bundledCases[0] !== undefined && (
+                <a
+                  href={trialHref(bundledCases[0].id)}
+                  className="rounded border-2 border-amber-300 bg-black/70 px-[3em] py-[0.35em] font-semibold hover:bg-amber-500 hover:text-stone-950"
+                >
+                  ▶ Watch a trial
+                </a>
+              )}
+              {timeline !== undefined && (
+                <a
+                  href={accuseHref(timeline.caseId)}
+                  className="rounded border-2 border-white/60 bg-black/70 px-[3em] py-[0.35em] hover:bg-white/15"
+                >
+                  Accuse a commit yourself
+                </a>
+              )}
+              <a
+                href="#/try"
+                className="rounded border-2 border-white/60 bg-black/70 px-[3em] py-[0.35em] hover:bg-white/15"
+              >
+                Try it on your code
+              </a>
+            </nav>
+          </div>
         </div>
       </section>
 

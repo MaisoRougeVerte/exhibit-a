@@ -141,7 +141,7 @@ export function TrialPage({ caseFile }: TrialPageProps) {
           <motion.nav
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute inset-x-0 top-[22%] z-30 flex flex-col items-center gap-[1.2em]"
+            className="absolute top-[16%] left-[4%] z-30 flex flex-col items-start gap-[1.2em] portrait:inset-x-0 portrait:items-center"
           >
             <p className="rotate-[-4deg] border-4 border-red-600 px-[0.6em] font-display text-vn-stamp font-black tracking-widest text-red-600 [text-shadow:0_3px_0_rgba(0,0,0,0.8)]">
               GUILTY

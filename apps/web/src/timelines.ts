@@ -19,3 +19,8 @@ export function findTimeline(caseId: string): Timeline | undefined {
 export function firstTimeline(): Timeline | undefined {
   return timelines[0];
 }
+
+/** Every commit known from the recorded timelines, for commit-message lookups. */
+export function allCommits(): readonly Timeline["commits"][number][] {
+  return timelines.flatMap((timeline) => timeline.commits);
+}

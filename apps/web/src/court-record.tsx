@@ -1,3 +1,4 @@
+import { CommitText } from "./commit-text.tsx";
 import { describeEvidence, type RecordEntry } from "./scene.ts";
 
 const statusStyles: Record<RecordEntry["status"], string> = {
@@ -27,7 +28,9 @@ export function CourtRecord({ entries }: CourtRecordProps) {
                 {entry.status}
               </span>
             </div>
-            <p className="mt-1 text-white/85">{describeEvidence(entry.evidence)}</p>
+            <p className="mt-1 text-white/85">
+              <CommitText text={describeEvidence(entry.evidence)} />
+            </p>
             {entry.excerpt !== "" && (
               <pre className="mt-2 overflow-x-auto rounded bg-black/60 p-2 text-xs text-white/60">
                 {entry.excerpt}

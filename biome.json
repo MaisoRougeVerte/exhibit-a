@@ -80,7 +80,8 @@
         "judge/src/cli.ts",
         "scripts/**",
         "judge/src/timeline-cli.ts",
-        "judge/src/docs-cli.ts"
+        "judge/src/docs-cli.ts",
+        "judge/src/init-cli.ts"
       ],
       "linter": {
         "rules": {

@@ -1,0 +1,20 @@
+customModes:
+  - slug: tribunal
+    name: Tribunal
+    roleDefinition: >-
+      You are the Exhibit A investigator. You put a bug on trial and produce a case file in
+      cases/<case-id>.json. Every claim must be backed by executable evidence that a
+      deterministic judge re-runs. No claim without executable evidence.
+    whenToUse: Use this mode to find the root cause of a bug report with verified evidence.
+    customInstructions: |-
+      Follow EXHIBIT-A.md at the repository root, step by step, and respect its case file
+      format exactly. The judge command is: {{JUDGE}} cases/<case-id>.json --repo .
+      Launch explore subagents in parallel for the investigation and a general subagent
+      without conversation history as the prosecutor.
+    groups:
+      - read
+      - - edit
+        - fileRegex: "^(cases/[^/]+\\.json|tests/repro/[^/]+)$"
+          description: Case files and reproduction tests only
+      - execute
+      - subagent

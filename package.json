@@ -17,7 +17,8 @@
     "prepare": "lefthook install",
     "judge": "node judge/src/cli.ts",
     "timeline": "node judge/src/timeline-cli.ts",
-    "docs-check": "node judge/src/docs-cli.ts"
+    "docs-check": "node judge/src/docs-cli.ts",
+    "init-repo": "node judge/src/init-cli.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",

@@ -4,6 +4,13 @@ import { accuseHref } from "./route.ts";
 const ways = [
   {
     status: "Available",
+    title: "Set up your repository",
+    text: "From an Exhibit A checkout, run pnpm init-repo --repo ../your-repo. It detects your test runner and adds the Bob Tribunal mode, the GitHub workflow, and EXHIBIT-A.md: instructions any AI agent can follow so its answer is a trial the judge can check.",
+    href: "https://github.com/MaisoRougeVerte/exhibit-a#set-up-any-repository-in-one-command",
+    cta: "Read the setup",
+  },
+  {
+    status: "Available",
     title: "Accuse a commit",
     text: "Play the investigator on Crumb & Co. Every ruling comes from a real run of the reproduction test at that commit.",
     href: accuseHref("framed-commit"),

@@ -43,6 +43,24 @@ re-ran 12 pieces of evidence. The same courtroom can rate any AI debugger: plant
 hallucination traps and security flaws, let each model investigate, and count what survives.
 That benchmark is on the roadmap.
 
+## Set up any repository in one command
+
+```bash
+git clone https://github.com/MaisoRougeVerte/exhibit-a && cd exhibit-a && pnpm install
+pnpm init-repo --repo ../your-repo
+```
+
+It detects your test runner and writes, without ever overwriting a file:
+
+| File | Purpose |
+|---|---|
+| `.exhibit-a.json` | the test command the judge runs |
+| `EXHIBIT-A.md` | instructions any AI agent can follow (Bob, Claude, Copilot, Codex) so its answer is a trial in the exact format the judge and the site read |
+| `.bob/custom_modes.yaml`, `.bob/skills/exhibit-a/` | the Tribunal mode and evidence skill for IBM Bob |
+| `.github/workflows/exhibit-a.yml` | label an issue `on-trial` to run a trial in CI |
+
+If the repository has an `AGENTS.md`, a one-line pointer to `EXHIBIT-A.md` is appended.
+
 ## Docs on trial
 
 The same rule applies to documentation. `pnpm docs-check --repo <path>` reads the README and

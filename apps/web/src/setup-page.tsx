@@ -40,7 +40,11 @@ function Command({ command }: { command: string }) {
       <button
         type="button"
         onClick={() => {
-          void navigator.clipboard.writeText(command).then(() => setCopied(true));
+          // A denied clipboard leaves the button as is; the command stays visible to copy by hand.
+          void navigator.clipboard.writeText(command).then(
+            () => setCopied(true),
+            () => undefined,
+          );
         }}
         className="rounded-sm border border-white/30 px-2 text-xs text-white/80 hover:bg-white/10"
       >

@@ -26,7 +26,11 @@ function CopyCommands({ commands }: { commands: readonly string[] }) {
           <button
             type="button"
             onClick={() => {
-              void navigator.clipboard.writeText(command).then(() => setCopied(command));
+              // A denied clipboard leaves the button as is; the command stays visible.
+              void navigator.clipboard.writeText(command).then(
+                () => setCopied(command),
+                () => undefined,
+              );
             }}
             className="w-full truncate rounded-sm bg-black/50 px-3 py-1.5 text-left font-mono text-sm text-sky-200 hover:bg-black/70"
           >

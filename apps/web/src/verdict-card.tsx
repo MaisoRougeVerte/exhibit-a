@@ -9,6 +9,7 @@ import { allCommits } from "./timelines.ts";
 type VerdictCardProps = {
   caseFile: CaseFile;
   verdict: VerdictEvent;
+  canReport: boolean;
   canAccuse: boolean;
 };
 
@@ -21,7 +22,7 @@ export function commandsFor(caseFile: CaseFile, verdict: VerdictEvent): string[]
   return [
     ...(verdict.culpritCommit === undefined ? [] : [`git show ${verdict.culpritCommit}`]),
     ...(run === undefined ? [] : [run]),
-    `pnpm judge cases/${caseFile.id}.json`,
+    `pnpm judge --check cases/${caseFile.id}.json`,
   ];
 }
 
@@ -41,15 +42,19 @@ function Fact({ label, tone, children }: { label: string; tone: string; children
 }
 
 /** End of trial: what a developer needs to act, not a victory screen. */
-export function VerdictCard({ caseFile, verdict, canAccuse }: VerdictCardProps) {
+export function VerdictCard({ caseFile, verdict, canReport, canAccuse }: VerdictCardProps) {
   const [copied, setCopied] = useState<string | undefined>(undefined);
   const reduceMotion = useReducedMotion() ?? false;
   const commands = commandsFor(caseFile, verdict);
   const subject = subjectOf(verdict.culpritCommit);
 
   async function copy(command: string) {
-    await navigator.clipboard.writeText(command);
-    setCopied(command);
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(command);
+    } catch {
+      // Clipboard access can be denied; the command stays visible to copy by hand.
+    }
   }
 
   return (
@@ -105,12 +110,14 @@ export function VerdictCard({ caseFile, verdict, canAccuse }: VerdictCardProps) 
           </div>
 
           <div className="flex flex-wrap gap-[0.8em]">
-            <a
-              href={reportHref(caseFile.id)}
-              className="rounded-sm bg-amber-500 px-4 py-1.5 font-extrabold text-stone-950"
-            >
-              Full report
-            </a>
+            {canReport && (
+              <a
+                href={reportHref(caseFile.id)}
+                className="rounded-sm bg-amber-500 px-4 py-1.5 font-extrabold text-stone-950"
+              >
+                Full report
+              </a>
+            )}
             {canAccuse && (
               <a
                 href={accuseHref(caseFile.id)}

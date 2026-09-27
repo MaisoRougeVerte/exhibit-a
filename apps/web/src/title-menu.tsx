@@ -4,6 +4,14 @@ import { PixelFrame } from "./pixel-frame.tsx";
 
 export type MenuItem = { label: string; href: string; hint: string };
 
+const steps: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
+
+// The home page is long: keys belong to the menu only while nothing else has focus.
+function menuHasFocus(links: readonly (HTMLAnchorElement | null)[]): boolean {
+  const focused = document.activeElement;
+  return focused === document.body || links.some((link) => link !== null && link === focused);
+}
+
 /** Game title menu: one panel, a moving cursor, arrow keys and Enter, or the mouse. */
 export function TitleMenu({ items }: { items: readonly MenuItem[] }) {
   const [selected, setSelected] = useState(0);
@@ -17,9 +25,10 @@ export function TitleMenu({ items }: { items: readonly MenuItem[] }) {
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      if (!menuHasFocus(links.current)) return;
+      const step = steps[event.key];
+      if (step !== undefined) {
         event.preventDefault();
-        const step = event.key === "ArrowDown" ? 1 : -1;
         setSelected((index) => (index + step + items.length) % items.length);
       } else if (event.key === "Enter") {
         const item = items[selected];

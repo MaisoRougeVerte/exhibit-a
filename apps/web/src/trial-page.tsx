@@ -1,9 +1,10 @@
-import type { CaseFile } from "@exhibit-a/schema";
+import { assertNever, type CaseFile } from "@exhibit-a/schema";
 import { motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CharacterSprite } from "./character-sprite.tsx";
 import { CourtRecordOverlay } from "./court-record-overlay.tsx";
 import { CourtroomBackdrop, CourtroomDesk } from "./courtroom-backdrop.tsx";
+import { fromOtherControl } from "./key-target.ts";
 import { ObjectionBubble } from "./objection-bubble.tsx";
 import { positionOf } from "./positions.ts";
 import { courtRecord, toScene } from "./scene.ts";
@@ -16,14 +17,35 @@ type TrialPageProps = {
   caseFile: CaseFile;
   /** Event index to open on, for deep links. */
   startAt?: number;
+  /** A trial loaded from a connected repo has no bundled report or timeline to link to. */
+  remote?: boolean;
 };
+
+type StageCommand = "advance" | "back" | "toggle-record" | "close-record" | "none";
+
+function stageCommand(
+  keyEvent: KeyboardEvent,
+  recordOpen: boolean,
+  stageButton: Element | null,
+): StageCommand {
+  const { key } = keyEvent;
+  if (key === "Escape") return "close-record";
+  if (key === "r" || key === "R") return "toggle-record";
+  // The trial is paused while the Court Record covers the stage.
+  if (recordOpen) return "none";
+  if (key === "ArrowLeft") return "back";
+  if (key !== " " && key !== "Enter") return "none";
+  // Enter on ‹ Menu, Back or a copy button must activate that control, not the stage.
+  return fromOtherControl(keyEvent, stageButton) ? "none" : "advance";
+}
 
 const hudButton =
   "rounded border border-white/60 bg-black/60 px-[1em] py-[0.3em] text-vn-hud text-white hover:bg-black/80";
 
-export function TrialPage({ caseFile, startAt = 0 }: TrialPageProps) {
+export function TrialPage({ caseFile, startAt = 0, remote = false }: TrialPageProps) {
   const [index, setIndex] = useState(Math.min(Math.max(startAt, 0), caseFile.events.length - 1));
   const [recordOpen, setRecordOpen] = useState(false);
+  const stageButton = useRef<HTMLButtonElement>(null);
   const reduceMotion = useReducedMotion() ?? false;
   const lastIndex = caseFile.events.length - 1;
   const event = caseFile.events[Math.min(index, lastIndex)];
@@ -47,20 +69,26 @@ export function TrialPage({ caseFile, startAt = 0 }: TrialPageProps) {
 
   useEffect(() => {
     function onKey(keyEvent: KeyboardEvent) {
-      if (keyEvent.key === " " || keyEvent.key === "Enter") {
-        keyEvent.preventDefault();
-        advance();
-      } else if (keyEvent.key === "ArrowLeft") {
-        back();
-      } else if (keyEvent.key === "r" || keyEvent.key === "R") {
-        setRecordOpen((open) => !open);
-      } else if (keyEvent.key === "Escape") {
-        setRecordOpen(false);
+      const command = stageCommand(keyEvent, recordOpen, stageButton.current);
+      switch (command) {
+        case "advance":
+          keyEvent.preventDefault();
+          return advance();
+        case "back":
+          return back();
+        case "toggle-record":
+          return setRecordOpen((open) => !open);
+        case "close-record":
+          return setRecordOpen(false);
+        case "none":
+          return;
+        default:
+          return assertNever(command);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [advance, back]);
+  }, [advance, back, recordOpen]);
 
   const shake = scene.effect === "objection" && !reduceMotion;
 
@@ -101,6 +129,7 @@ export function TrialPage({ caseFile, startAt = 0 }: TrialPageProps) {
         <ObjectionBubble effect={scene.effect} eventIndex={index} />
 
         <button
+          ref={stageButton}
           type="button"
           onClick={advance}
           aria-label="Next line"
@@ -108,7 +137,12 @@ export function TrialPage({ caseFile, startAt = 0 }: TrialPageProps) {
         />
 
         <div className="pointer-events-none absolute inset-0 z-10">
-          <TextBox speaker={scene.speaker} text={typing.shown} done={typing.done} />
+          <TextBox
+            speaker={scene.speaker}
+            text={typing.shown}
+            line={scene.line}
+            done={typing.done}
+          />
         </div>
 
         <header className="absolute inset-x-[2%] top-[3%] z-20 flex items-start justify-between gap-4">
@@ -143,7 +177,8 @@ export function TrialPage({ caseFile, startAt = 0 }: TrialPageProps) {
           <VerdictCard
             caseFile={caseFile}
             verdict={event}
-            canAccuse={findTimeline(caseFile.id) !== undefined}
+            canReport={!remote}
+            canAccuse={!remote && findTimeline(caseFile.id) !== undefined}
           />
         )}
 

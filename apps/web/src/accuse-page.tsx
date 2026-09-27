@@ -20,10 +20,6 @@ function judgeLine(accusation: Accusation | undefined): string {
     : rulingLine(accusation);
 }
 
-function isShown(index: number, accused: number | undefined, revealed: boolean): boolean {
-  return revealed || index === accused || (accused !== undefined && index === accused - 1);
-}
-
 function rulingLine(accusation: Accusation): string {
   const sha = accusation.commit.sha;
   switch (accusation.verdict) {
@@ -48,9 +44,10 @@ type CommitRowProps = {
   commit: TimelineCommit;
   selected: boolean;
   accused: boolean;
-  status: TimelineCommit["status"] | undefined;
+  status: TimelineCommit["status"];
   culprit: boolean;
   onHover: () => void;
+  onFocus: () => void;
   onAccuse: () => void;
 };
 
@@ -67,6 +64,7 @@ function CommitRow({
   status,
   culprit,
   onHover,
+  onFocus,
   onAccuse,
 }: CommitRowProps) {
   return (
@@ -74,6 +72,7 @@ function CommitRow({
       <button
         type="button"
         onMouseEnter={onHover}
+        onFocus={onFocus}
         onClick={onAccuse}
         aria-pressed={accused}
         className={`flex w-full items-stretch gap-3 rounded-sm py-[0.3em] pr-2 pl-1 text-left [&>span]:self-center [&>span:nth-child(2)]:self-stretch ${selected ? "bg-[#3b2412]/15" : ""} ${accused ? "outline-2 -outline-offset-2 outline-[#8b1d1d] outline-dashed" : ""}`}
@@ -88,7 +87,7 @@ function CommitRow({
         >
           <span className="absolute inset-y-[-0.3em] left-1/2 w-[3px] -translate-x-1/2 bg-[#2b1a0e]/50" />
           <span
-            className={`relative size-[0.85em] rounded-full border-2 border-[#2b1a0e] ${status === undefined ? "bg-[#f3e6c4]" : node[status]} ${culprit ? "scale-150 ring-2 ring-red-700" : ""}`}
+            className={`relative size-[0.85em] rounded-full border-2 border-[#2b1a0e] ${node[status]} ${culprit ? "scale-150 ring-2 ring-red-700" : ""}`}
           />
         </span>
         <span className="font-mono text-[#8b1d1d]">{commit.sha}</span>
@@ -103,13 +102,12 @@ function CommitRow({
   );
 }
 
-/** Arrow keys move the menu cursor, Enter or Space accuses, R reveals every result. */
+/** Arrow keys move the menu cursor, Enter or Space accuses. */
 function useMenuKeys(
   size: number,
   cursor: number,
   setCursor: (update: (current: number) => number) => void,
   onAccuse: (row: number) => void,
-  onReveal: () => void,
 ) {
   useEffect(() => {
     const moves: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
@@ -119,39 +117,32 @@ function useMenuKeys(
         keyEvent.preventDefault();
         setCursor((current) => Math.min(Math.max(current + move, 0), size - 1));
       } else if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+        // Links keep their own Enter; commit rows are buttons and resolve to the cursor row.
+        if (keyEvent.target instanceof Element && keyEvent.target.closest("a") !== null) return;
         keyEvent.preventDefault();
         onAccuse(cursor);
-      } else if (keyEvent.key.toLowerCase() === "r") {
-        onReveal();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [size, cursor, setCursor, onAccuse, onReveal]);
+  }, [size, cursor, setCursor, onAccuse]);
 }
 
 export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
   const newestFirst = timeline.commits.map((commit, index) => ({ commit, index })).reverse();
   const [cursor, setCursor] = useState(0);
   const [accused, setAccused] = useState<number | undefined>(undefined);
-  // Results are visible from the start: the timeline itself is useful to a developer.
-  const [revealed, setRevealed] = useState(true);
   const listRef = useRef<HTMLOListElement>(null);
 
   const accusation = accused === undefined ? undefined : accuse(timeline, accused);
   const culprit = culpritIndex(timeline);
+  const judgeSays = judgeLine(accusation);
   const judgeMood = accusation?.verdict === "guilty" ? "angry" : "neutral";
 
-  useMenuKeys(
-    newestFirst.length,
-    cursor,
-    setCursor,
-    (row) => {
-      const entry = newestFirst[row];
-      if (entry !== undefined) setAccused(entry.index);
-    },
-    () => setRevealed(true),
-  );
+  useMenuKeys(newestFirst.length, cursor, setCursor, (row) => {
+    const entry = newestFirst[row];
+    if (entry !== undefined) setAccused(entry.index);
+  });
 
   // Keep the keyboard cursor visible inside the scrolling menu.
   useEffect(() => {
@@ -220,9 +211,10 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
                   commit={commit}
                   selected={row === cursor}
                   accused={index === accused}
-                  status={isShown(index, accused, revealed) ? commit.status : undefined}
-                  culprit={revealed && index === culprit}
+                  status={commit.status}
+                  culprit={index === culprit}
                   onHover={() => setCursor(row)}
+                  onFocus={() => setCursor(row)}
                   onAccuse={() => {
                     setCursor(row);
                     setAccused(index);
@@ -242,7 +234,12 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
         </PixelFrame>
 
         <div className="pointer-events-none absolute inset-0 z-10">
-          <TextBox speaker="judge" done={accusation !== undefined} text={judgeLine(accusation)} />
+          <TextBox
+            speaker="judge"
+            done={accusation !== undefined}
+            text={judgeSays}
+            line={judgeSays}
+          />
         </div>
       </section>
     </main>

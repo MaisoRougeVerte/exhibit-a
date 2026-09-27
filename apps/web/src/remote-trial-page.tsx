@@ -18,7 +18,7 @@ function RemoteTrial({ owner, repo, file }: RemoteTrialPageProps) {
       </main>
     );
   }
-  return <TrialPage caseFile={loaded.value} />;
+  return <TrialPage caseFile={loaded.value} remote />;
 }
 
 export function RemoteTrialPage(props: RemoteTrialPageProps) {

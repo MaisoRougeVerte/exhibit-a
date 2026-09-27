@@ -6,14 +6,17 @@ import { speakerStyles } from "./speakers.ts";
 
 type TextBoxProps = {
   speaker: Speaker;
+  /** What is visible so far, possibly mid-typewriter. */
   text: string;
+  /** The whole line, announced once to screen readers instead of letter by letter. */
+  line: string;
   done: boolean;
 };
 
 const PANEL = "linear-gradient(180deg, rgba(20,32,70,0.96) 0%, rgba(6,10,24,0.96) 100%)";
 
 /** Pixel-console dialogue box: navy panel in a light pixel frame, name tag on top. */
-export function TextBox({ speaker, text, done }: TextBoxProps) {
+export function TextBox({ speaker, text, line, done }: TextBoxProps) {
   const reduceMotion = useReducedMotion() ?? false;
   const style = speakerStyles[speaker];
   const narrating = speaker === "narrator";
@@ -31,8 +34,11 @@ export function TextBox({ speaker, text, done }: TextBoxProps) {
       )}
       <PixelFrame fill={PANEL} className="h-full">
         <div className="px-[2.2cqw] pt-[1.6cqw] pb-[1.4cqw]">
+          <p aria-live="polite" className="sr-only">
+            {line}
+          </p>
           <p
-            aria-live="polite"
+            aria-hidden="true"
             className={`text-vn-body font-medium leading-snug [text-shadow:0_2px_0_rgba(0,0,0,0.9)] ${narrating ? "text-sky-100" : "text-white"}`}
           >
             <CommitText text={text} />

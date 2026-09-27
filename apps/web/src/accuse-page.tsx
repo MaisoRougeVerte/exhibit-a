@@ -1,118 +1,225 @@
-import { assertNever, type Timeline } from "@exhibit-a/schema";
-import { useState } from "react";
+import { assertNever, type Timeline, type TimelineCommit } from "@exhibit-a/schema";
+import { useEffect, useRef, useState } from "react";
 import { type Accusation, accuse, culpritIndex } from "./accuse.ts";
+import { CharacterSprite } from "./character-sprite.tsx";
+import { CourtroomBackdrop } from "./courtroom-backdrop.tsx";
+import { PixelFrame } from "./pixel-frame.tsx";
 import { trialHref } from "./route.ts";
+import { TextBox } from "./text-box.tsx";
 
 type AccusePageProps = {
   timeline: Timeline;
   bugTitle: string;
 };
 
-function rulingText(accusation: Accusation): { title: string; body: string; tone: string } {
+const PANEL = "linear-gradient(180deg, rgba(20,32,70,0.95), rgba(6,10,24,0.95))";
+
+function judgeLine(accusation: Accusation | undefined): string {
+  return accusation === undefined
+    ? "Pick the commit you suspect. I will replay the reproduction test there and at its parent, exactly like an alibi check."
+    : rulingLine(accusation);
+}
+
+function isShown(index: number, accused: number | undefined, revealed: boolean): boolean {
+  return revealed || index === accused || (accused !== undefined && index === accused - 1);
+}
+
+function rulingLine(accusation: Accusation): string {
   const sha = accusation.commit.sha;
   switch (accusation.verdict) {
     case "guilty":
-      return {
-        title: `Guilty. Commit ${sha} introduced the bug.`,
-        body:
-          accusation.parent === undefined
-            ? "The reproduction test fails here, and there is no earlier commit."
-            : `The reproduction test fails at ${sha} and did not fail at its parent ${accusation.parent.sha}.`,
-        tone: "border-red-500 bg-red-950/60",
-      };
+      return accusation.parent === undefined
+        ? `Guilty. ${sha} fails the reproduction test, and nothing came before it.`
+        : `Guilty. The test fails at ${sha} and passed at its parent ${accusation.parent.sha}: this commit introduced the bug.`;
     case "alibi":
-      return {
-        title: `Acquitted. Commit ${sha} has an alibi.`,
-        body: `The test fails here, but it already failed at its parent ${accusation.parent.sha}. The bug was there before this commit.`,
-        tone: "border-emerald-500 bg-emerald-950/60",
-      };
+      return `Acquitted. The test fails at ${sha}, but it already failed at its parent ${accusation.parent.sha}. The bug is older.`;
     case "innocent":
-      return {
-        title: `Acquitted. The bug does not exist at ${sha}.`,
-        body: "The reproduction test passes at this commit.",
-        tone: "border-emerald-500 bg-emerald-950/60",
-      };
+      return `Acquitted. The reproduction test passes at ${sha}: the bug does not exist yet.`;
     case "no-ruling":
-      return {
-        title: "No ruling.",
-        body: `The reproduction test cannot run at ${sha}: the code it exercises does not exist yet.`,
-        tone: "border-stone-500 bg-stone-900",
-      };
+      return `No ruling. The test cannot run at ${sha}: the code it exercises does not exist yet.`;
     default:
       return assertNever(accusation);
   }
 }
 
-const statusLabel = { pass: "passes", fail: "fails", error: "cannot run" } as const;
+const badge = {
+  pass: "bg-emerald-700 text-emerald-50",
+  fail: "bg-red-700 text-red-50",
+  error: "bg-slate-600 text-slate-100",
+} as const;
 
-export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
-  const [accused, setAccused] = useState<number | undefined>(undefined);
-  const [revealed, setRevealed] = useState(false);
-  const accusation = accused === undefined ? undefined : accuse(timeline, accused);
-  const ruling = accusation === undefined ? undefined : rulingText(accusation);
-  const culprit = culpritIndex(timeline);
-  const shown = (index: number) => revealed || index === accused || index === (accused ?? -2) - 1;
+const badgeLabel = { pass: "PASS", fail: "FAIL", error: "N/A" } as const;
 
+type CommitRowProps = {
+  commit: TimelineCommit;
+  selected: boolean;
+  accused: boolean;
+  status: TimelineCommit["status"] | undefined;
+  culprit: boolean;
+  onHover: () => void;
+  onAccuse: () => void;
+};
+
+function CommitRow({
+  commit,
+  selected,
+  accused,
+  status,
+  culprit,
+  onHover,
+  onAccuse,
+}: CommitRowProps) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-8 bg-stone-950 px-6 py-10 text-white">
-      <nav className="flex justify-between text-sm text-white/60">
-        <a href="#/" className="hover:text-white">
-          ← Exhibit A
-        </a>
-        <a href={trialHref(timeline.caseId)} className="hover:text-white">
-          Watch Bob's trial
-        </a>
-      </nav>
-
-      <header>
-        <p className="text-sm uppercase tracking-widest text-brass-400">You are the investigator</p>
-        <h1 className="font-display text-4xl">Accuse a commit</h1>
-        <p className="mt-3 text-white/75">
-          The case: {bugTitle}. Pick the commit you think is guilty. The judge checks it against the
-          reproduction test, exactly like its alibi check. Every result below comes from a real run
-          of the test at that commit in {timeline.repo}.
-        </p>
-      </header>
-
-      {ruling !== undefined && (
-        <section aria-live="polite" className={`rounded-xl border-2 p-5 ${ruling.tone}`}>
-          <h2 className="font-display text-2xl">{ruling.title}</h2>
-          <p className="mt-2 text-white/85">{ruling.body}</p>
-        </section>
-      )}
-
-      <ol className="flex flex-col gap-2">
-        {timeline.commits
-          .map((commit, index) => ({ commit, index }))
-          .reverse()
-          .map(({ commit, index }) => (
-            <li key={commit.sha}>
-              <button
-                type="button"
-                onClick={() => setAccused(index)}
-                aria-pressed={index === accused}
-                className={`flex w-full items-center gap-4 rounded-lg px-4 py-3 text-left hover:bg-wood-800 ${index === accused ? "bg-wood-800 ring-2 ring-brass-400" : "bg-wood-900"}`}
-              >
-                <span className="font-mono text-sm text-brass-400">{commit.sha}</span>
-                <span className="flex-1 text-white/85">{commit.subject}</span>
-                <span className="text-xs uppercase text-white/60">
-                  {shown(index) ? `test ${statusLabel[commit.status]}` : "?"}
-                </span>
-                {revealed && index === culprit && (
-                  <span className="rounded bg-red-600 px-2 py-0.5 text-xs uppercase">culprit</span>
-                )}
-              </button>
-            </li>
-          ))}
-      </ol>
-
+    <li>
       <button
         type="button"
-        onClick={() => setRevealed(true)}
-        className="self-start rounded border border-white/30 px-4 py-2 text-sm hover:bg-white/10"
+        onMouseEnter={onHover}
+        onClick={onAccuse}
+        aria-pressed={accused}
+        className={`flex w-full items-center gap-2 rounded px-2 py-1 text-left ${selected ? "bg-white/15" : ""} ${accused ? "text-amber-200" : ""}`}
       >
-        Reveal every result
+        <span aria-hidden="true" className="w-3 text-amber-300">
+          {selected ? "▶" : ""}
+        </span>
+        <span className="font-mono text-amber-300">{commit.sha}</span>
+        <span className="min-w-0 flex-1 truncate text-white/90">{commit.subject}</span>
+        {status !== undefined && (
+          <span
+            className={`rounded-sm px-1.5 font-display text-xs tracking-wider ${badge[status]}`}
+          >
+            {badgeLabel[status]}
+          </span>
+        )}
+        {culprit && (
+          <span className="rounded-sm bg-red-600 px-1.5 font-display text-xs tracking-wider">
+            CULPRIT
+          </span>
+        )}
       </button>
+    </li>
+  );
+}
+
+/** Arrow keys move the menu cursor, Enter or Space accuses, R reveals every result. */
+function useMenuKeys(
+  size: number,
+  cursor: number,
+  setCursor: (update: (current: number) => number) => void,
+  onAccuse: (row: number) => void,
+  onReveal: () => void,
+) {
+  useEffect(() => {
+    const moves: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
+    function onKey(keyEvent: KeyboardEvent) {
+      const move = moves[keyEvent.key];
+      if (move !== undefined) {
+        keyEvent.preventDefault();
+        setCursor((current) => Math.min(Math.max(current + move, 0), size - 1));
+      } else if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+        keyEvent.preventDefault();
+        onAccuse(cursor);
+      } else if (keyEvent.key.toLowerCase() === "r") {
+        onReveal();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [size, cursor, setCursor, onAccuse, onReveal]);
+}
+
+export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
+  const newestFirst = timeline.commits.map((commit, index) => ({ commit, index })).reverse();
+  const [cursor, setCursor] = useState(0);
+  const [accused, setAccused] = useState<number | undefined>(undefined);
+  const [revealed, setRevealed] = useState(false);
+  const listRef = useRef<HTMLOListElement>(null);
+
+  const accusation = accused === undefined ? undefined : accuse(timeline, accused);
+  const culprit = culpritIndex(timeline);
+  const judgeMood = accusation?.verdict === "guilty" ? "angry" : "neutral";
+
+  useMenuKeys(
+    newestFirst.length,
+    cursor,
+    setCursor,
+    (row) => {
+      const entry = newestFirst[row];
+      if (entry !== undefined) setAccused(entry.index);
+    },
+    () => setRevealed(true),
+  );
+
+  // Keep the keyboard cursor visible inside the scrolling menu.
+  useEffect(() => {
+    listRef.current?.children[cursor]?.scrollIntoView({ block: "nearest" });
+  }, [cursor]);
+
+  return (
+    <main className="grid min-h-dvh place-items-center bg-black">
+      <section
+        aria-label="Accuse a commit"
+        className="@container relative aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden text-white select-none portrait:aspect-auto portrait:h-dvh portrait:max-w-none"
+      >
+        <CourtroomBackdrop position="bench" />
+        <div className="absolute inset-0 bg-black/35" />
+        <CharacterSprite speaker="judge" expression={judgeMood} talking={false} />
+
+        <header className="absolute inset-x-[2%] top-[3%] z-20 flex items-start justify-between gap-4 text-vn-hud">
+          <a
+            href="#/"
+            className="rounded border border-white/60 bg-black/60 px-[1em] py-[0.3em] hover:bg-black/80"
+          >
+            ‹ Menu
+          </a>
+          <PixelFrame fill={PANEL} className="max-w-[46%]">
+            <p className="px-[1.2em] py-[0.5em] text-right">
+              <span className="font-display text-vn-name tracking-wider text-amber-300">
+                Accuse a commit
+              </span>
+              <br />
+              <span className="text-white/80">Case: {bugTitle}</span>
+            </p>
+          </PixelFrame>
+        </header>
+
+        <PixelFrame
+          fill={PANEL}
+          className="absolute top-[14%] left-[2%] z-20 h-[52%] w-[44%] portrait:w-[96%]"
+        >
+          <div className="flex h-full flex-col px-[1em] py-[0.8em] text-vn-small">
+            <p className="mb-2 font-display tracking-wider text-amber-300">
+              Commit history · {timeline.repo}
+            </p>
+            <ol ref={listRef} className="min-h-0 flex-1 overflow-y-auto pr-1">
+              {newestFirst.map(({ commit, index }, row) => (
+                <CommitRow
+                  key={commit.sha}
+                  commit={commit}
+                  selected={row === cursor}
+                  accused={index === accused}
+                  status={isShown(index, accused, revealed) ? commit.status : undefined}
+                  culprit={revealed && index === culprit}
+                  onHover={() => setCursor(row)}
+                  onAccuse={() => {
+                    setCursor(row);
+                    setAccused(index);
+                  }}
+                />
+              ))}
+            </ol>
+            <p className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-white/60">
+              <span>↑↓ choose · Enter accuse · R reveal all</span>
+              <a href={trialHref(timeline.caseId)} className="text-amber-300 underline">
+                Watch Bob's trial
+              </a>
+            </p>
+          </div>
+        </PixelFrame>
+
+        <div className="pointer-events-none absolute inset-0 z-10">
+          <TextBox speaker="judge" done={accusation !== undefined} text={judgeLine(accusation)} />
+        </div>
+      </section>
     </main>
   );
 }

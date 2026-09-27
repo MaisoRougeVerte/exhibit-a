@@ -15,6 +15,40 @@ import { findTimeline, firstTimeline } from "./timelines.ts";
 const SO_2025 = "https://survey.stackoverflow.co/2025/ai";
 const METR_2025 = "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/";
 
+const flow = [
+  { title: "Bug report", text: "A GitHub issue or a report in plain words, as a user wrote it." },
+  {
+    title: "Investigation",
+    text: "IBM Bob explores history, logs and code in parallel and writes a failing reproduction test.",
+  },
+  {
+    title: "Claims + evidence",
+    text: "Every claim cites something runnable: a test, a commit replay, a log search, a bisect.",
+  },
+  {
+    title: "Objection & judge",
+    text: "An independent prosecutor attacks each claim; plain code re-runs every piece of evidence.",
+  },
+  {
+    title: "Verdict",
+    text: "Culprit commit, root cause, fix, regression test, and the commands to check it yourself.",
+  },
+];
+
+const typical = [
+  "Names a root cause with total confidence",
+  "Nothing to re-run: you trust it or re-check by hand",
+  "Wrong guesses look exactly like right ones",
+  "The same model grades its own answer",
+];
+
+const exhibit = [
+  "Every claim comes with evidence the court can run",
+  "A deterministic judge re-runs it, no AI involved",
+  "Wrong claims are withdrawn in the open, and counted",
+  "An independent prosecutor, blind to the reasoning",
+];
+
 const studies: Study[] = [
   {
     value: "66%",
@@ -221,6 +255,70 @@ export function HomePage() {
             </div>
           </div>
         </PixelFrame>
+      </Section>
+
+      <Section
+        eyebrow="THE SOLUTION"
+        title="Put the bug on trial: only proven claims reach the verdict"
+      >
+        <ol className="grid gap-3 md:grid-cols-5">
+          {flow.map((step, index) => (
+            <li key={step.title} className="relative flex">
+              <PixelFrame
+                fill={
+                  index === flow.length - 1
+                    ? "linear-gradient(180deg, #7c5a12, #3a2806)"
+                    : NAVY_PANEL
+                }
+                className="flex-1"
+              >
+                <div className="flex h-full flex-col gap-2 p-4">
+                  <p className="font-display text-3xl leading-none text-amber-300">{index + 1}</p>
+                  <p className="font-display text-xl tracking-wide text-amber-50">{step.title}</p>
+                  <p className="text-sm text-white/80">{step.text}</p>
+                </div>
+              </PixelFrame>
+              {index < flow.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1/2 -right-3 z-10 hidden -translate-y-1/2 font-display text-2xl text-amber-300 md:block"
+                >
+                  {">"}
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+        <div className="grid gap-5 md:grid-cols-2">
+          <PixelFrame fill="linear-gradient(180deg, rgba(40,40,48,0.95), rgba(14,14,20,0.95))">
+            <div className="p-5">
+              <p className="font-display text-xl tracking-[0.2em] text-white/60">
+                A TYPICAL AI ASSISTANT
+              </p>
+              <ul className="mt-3 flex flex-col gap-2 text-white/75">
+                {typical.map((line) => (
+                  <li key={line} className="flex gap-2">
+                    <span className="font-display text-red-400">x</span>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </PixelFrame>
+          <PixelFrame fill={NAVY_PANEL}>
+            <div className="p-5">
+              <p className="font-display text-xl tracking-[0.2em] text-amber-300">EXHIBIT A</p>
+              <ul className="mt-3 flex flex-col gap-2 text-white/95">
+                {exhibit.map((line) => (
+                  <li key={line} className="flex gap-2">
+                    <span className="font-display text-emerald-400">+</span>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </PixelFrame>
+        </div>
       </Section>
 
       <Section eyebrow="THE COURT" title="Three roles, one rule: no claim without evidence">

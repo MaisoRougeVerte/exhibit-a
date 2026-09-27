@@ -30,6 +30,8 @@ runs:
         path: target
         fetch-depth: 0
         token: ${{ inputs.github-token }}
+        # Bob runs on untrusted issue text: it must not find a write token in .git/config.
+        persist-credentials: false
 
     - name: Set up Node
       uses: actions/setup-node@v7

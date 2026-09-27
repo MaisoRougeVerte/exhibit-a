@@ -11,6 +11,11 @@ permissions:
   contents: write
   issues: write
 
+# Trials publish to one branch: running them one at a time keeps every push fast-forward.
+concurrency:
+  group: exhibit-a
+  cancel-in-progress: false
+
 jobs:
   trial:
     if: github.event.label.name == 'on-trial'

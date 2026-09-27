@@ -137,11 +137,11 @@ export function HomePage() {
         <CourtroomBackdrop position="defense" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/80" />
         <div className="relative flex min-h-dvh flex-col items-center justify-center gap-[3cqw] px-[4%] pb-28 text-center">
-          <div className="flex flex-col items-center gap-[1.2cqw]">
-            <p className="font-display text-vn-tag tracking-[0.5em] text-amber-300 [text-shadow:2px_2px_0_#000]">
+          <div className="flex flex-col items-center gap-[1.2cqw] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.35)_45%,transparent_72%)] px-[8cqw] py-[3cqw]">
+            <p className="font-display text-vn-tag tracking-[0.3em] text-amber-300 [text-shadow:2px_0_0_#000,-2px_0_0_#000,0_2px_0_#000,0_-2px_0_#000]">
               DEBUGGING ON TRIAL
             </p>
-            <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-100 [text-shadow:4px_0_0_#1a0f06,-4px_0_0_#1a0f06,0_4px_0_#1a0f06,0_-4px_0_#1a0f06,4px_4px_0_#1a0f06,-4px_4px_0_#1a0f06,4px_-4px_0_#1a0f06,-4px_-4px_0_#1a0f06,0_12px_0_#7c2d12]">
+            <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-50 [text-shadow:3px_0_0_#0b1220,-3px_0_0_#0b1220,0_3px_0_#0b1220,0_-3px_0_#0b1220,3px_3px_0_#0b1220,-3px_3px_0_#0b1220,3px_-3px_0_#0b1220,-3px_-3px_0_#0b1220,0_8px_0_rgba(0,0,0,0.55)]">
               EXHIBIT A
             </h1>
             <p className="bg-black/75 px-4 py-1 text-vn-lead font-extrabold text-white">

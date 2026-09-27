@@ -31,14 +31,17 @@ export function TitleMenu({ items }: { items: readonly MenuItem[] }) {
         fill="linear-gradient(180deg, rgba(20,32,70,0.95), rgba(6,10,24,0.95))"
         className="w-full"
       >
+        {/* No gaps between rows: the pointer is always over exactly one item, so the cursor never flickers. */}
         <ul className="flex flex-col py-3">
           {items.map((item, index) => (
-            <li key={item.href}>
+            <li key={item.href} className="block">
               <a
                 href={item.href}
-                onMouseEnter={() => setSelected(index)}
+                onPointerMove={() => {
+                  if (index !== selected) setSelected(index);
+                }}
                 onFocus={() => setSelected(index)}
-                className={`flex items-center gap-3 px-6 py-1.5 text-vn-menu outline-none ${index === selected ? "bg-white/10 text-amber-200" : "text-white/85"}`}
+                className={`flex w-full items-center gap-3 px-6 py-2 text-vn-menu leading-none outline-none ${index === selected ? "bg-white/10 text-amber-200" : "text-white/85"}`}
               >
                 <span aria-hidden="true" className="w-4 font-display text-amber-300">
                   {index === selected ? ">" : ""}

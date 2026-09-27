@@ -31,7 +31,7 @@ function Sprite({ speaker, expression }: { speaker: Speaker; expression: Express
 
 function BugNote() {
   return (
-    <div className="mb-3 w-32 -rotate-3 border-4 border-[#2b1a0e] bg-[#f6ead0] p-2 text-left text-[#2b1a0e] shadow-[6px_6px_0_#000]">
+    <div className="mb-10 w-32 -rotate-3 border-4 border-[#2b1a0e] bg-[#f6ead0] p-2 text-left text-[#2b1a0e] shadow-[6px_6px_0_#000]">
       <p className="font-display text-sm text-[#8b1d1d]">BUG #3</p>
       <p className="text-xs leading-tight">Stock went negative on the last baguette</p>
     </div>
@@ -40,7 +40,7 @@ function BugNote() {
 
 function Stamp() {
   return (
-    <p className="mb-6 -rotate-6 border-4 border-red-500 bg-black/60 px-3 font-display text-4xl tracking-widest text-red-400">
+    <p className="mb-14 -rotate-6 border-4 border-red-500 bg-black/60 px-3 font-display text-4xl tracking-widest text-red-400">
       GUILTY
     </p>
   );
@@ -69,6 +69,63 @@ const flow: { title: string; text: string; art: ReactNode }[] = [
     art: <Stamp />,
   },
 ];
+
+function FighterCard({
+  name,
+  tone,
+  portrait,
+  slots,
+}: {
+  name: string;
+  tone: "gray" | "gold";
+  portrait: ReactNode;
+  slots: readonly string[];
+}) {
+  const gold = tone === "gold";
+  return (
+    <PixelFrame
+      fill={gold ? NAVY_PANEL : "linear-gradient(180deg, #1f2430, #0d0f14)"}
+      frame={gold ? "#fcd34d" : "#6b7280"}
+    >
+      <div className="flex h-full flex-col gap-4 p-5">
+        <div className="flex items-end gap-4">
+          <div className="flex h-36 w-36 shrink-0 items-end justify-center">{portrait}</div>
+          <div className="flex flex-col gap-1">
+            <p className="font-display text-sm tracking-[0.25em] text-white/50">
+              {gold ? "PLAYER 1" : "CPU"}
+            </p>
+            <p
+              className={`font-display text-3xl tracking-wide ${gold ? "text-amber-300" : "text-white/55"}`}
+            >
+              {name}
+            </p>
+          </div>
+        </div>
+        <ul className="grid gap-2">
+          {slots.map((slot) => (
+            <li
+              key={slot}
+              className={`flex items-center gap-3 border-2 px-3 py-2 ${gold ? "border-amber-300/70 bg-amber-300/10 text-white" : "border-white/10 bg-black/30 text-white/45"}`}
+            >
+              <span
+                aria-hidden="true"
+                className={`grid size-6 shrink-0 place-items-center font-display text-sm ${gold ? "bg-amber-300 text-[#0b1220]" : "bg-[#374151] text-[#9ca3af]"}`}
+              >
+                {gold ? "+" : "x"}
+              </span>
+              <span className="text-sm">{slot}</span>
+              {!gold && (
+                <span className="ml-auto font-display text-xs tracking-widest text-white/35">
+                  LOCKED
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </PixelFrame>
+  );
+}
 
 const typical = [
   "Names a root cause with total confidence",
@@ -294,22 +351,36 @@ export function HomePage() {
 
       <Section eyebrow="THE SOLUTION" title="Put the bug on trial">
         <div className="relative">
-          {/* The level track the five stages sit on. */}
+          {/* The level path: the stages sit on it like a stage select screen. */}
           <div
             aria-hidden="true"
-            className="absolute top-[184px] right-[10%] left-[10%] hidden h-2 md:block"
+            className="absolute top-[110px] right-[8%] left-[8%] hidden h-2 md:block"
             style={{
               background: "repeating-linear-gradient(90deg, #fcd34d 0 16px, transparent 16px 28px)",
             }}
           />
-          <ol className="relative grid gap-6 md:grid-cols-5">
+          <ol className="relative grid gap-5 md:grid-cols-5">
             {flow.map((step, index) => (
-              <li key={step.title} className="flex flex-col items-center text-center">
-                <div className="flex h-40 items-end justify-center">{step.art}</div>
-                <span className="relative z-10 mt-2 grid size-10 place-items-center border-4 border-[#0b1220] bg-amber-300 font-display text-xl text-[#0b1220]">
-                  {index + 1}
-                </span>
-                <p className="mt-3 font-display text-2xl tracking-wide text-amber-50">
+              <li key={step.title} className="group flex flex-col items-center text-center">
+                <PixelFrame
+                  fill="radial-gradient(circle at 50% 70%, #243a78 0%, #0b1330 75%)"
+                  frame="#e2e8f0"
+                  className="w-full transition-transform duration-150 group-hover:-translate-y-1 [&>div:first-child]:group-hover:!bg-amber-300"
+                >
+                  <div className="relative flex h-[220px] items-end justify-center overflow-hidden">
+                    <span className="absolute top-2 left-3 font-display text-sm tracking-[0.2em] text-amber-300">
+                      STAGE {index + 1}
+                    </span>
+                    {step.art}
+                  </div>
+                </PixelFrame>
+                <p className="mt-3 flex items-center gap-2 font-display text-2xl tracking-wide text-amber-50">
+                  <span
+                    aria-hidden="true"
+                    className="text-amber-300 opacity-0 group-hover:opacity-100"
+                  >
+                    {">"}
+                  </span>
                   {step.title}
                 </p>
                 <p className="mt-1 max-w-56 text-sm text-white/75">{step.text}</p>
@@ -318,41 +389,26 @@ export function HomePage() {
           </ol>
         </div>
 
-        <div className="mt-6 grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
-          <PixelFrame
-            fill="linear-gradient(180deg, rgba(40,40,48,0.95), rgba(14,14,20,0.95))"
-            frame="#6b7280"
-          >
-            <div className="p-5">
-              <p className="font-display text-2xl tracking-[0.15em] text-white/55">
-                TYPICAL AI ASSISTANT
-              </p>
-              <ul className="mt-3 flex flex-col gap-2 text-white/70">
-                {typical.map((line) => (
-                  <li key={line} className="flex gap-2">
-                    <span className="font-display text-red-400">x</span>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </PixelFrame>
-          <p className="self-center justify-self-center font-display text-7xl text-red-500 [text-shadow:3px_0_0_#000,-3px_0_0_#000,0_3px_0_#000,0_-3px_0_#000,0_8px_0_#7f1d1d]">
+        <div className="mt-8 grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
+          <FighterCard
+            name="TYPICAL AI ASSISTANT"
+            tone="gray"
+            portrait={
+              <span className="grid size-36 place-items-center border-4 border-[#4b5563] bg-[#1f2937] font-display text-8xl text-[#6b7280]">
+                ?
+              </span>
+            }
+            slots={typical}
+          />
+          <p className="self-center justify-self-center font-display text-8xl text-red-500 [text-shadow:4px_0_0_#000,-4px_0_0_#000,0_4px_0_#000,0_-4px_0_#000,0_10px_0_#7f1d1d]">
             VS
           </p>
-          <PixelFrame fill={NAVY_PANEL} frame="#fcd34d">
-            <div className="p-5">
-              <p className="font-display text-2xl tracking-[0.15em] text-amber-300">EXHIBIT A</p>
-              <ul className="mt-3 flex flex-col gap-2 text-white/95">
-                {exhibit.map((line) => (
-                  <li key={line} className="flex gap-2">
-                    <span className="font-display text-emerald-400">+</span>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </PixelFrame>
+          <FighterCard
+            name="EXHIBIT A"
+            tone="gold"
+            portrait={<Sprite speaker="investigator" expression="confident" />}
+            slots={exhibit}
+          />
         </div>
       </Section>
 

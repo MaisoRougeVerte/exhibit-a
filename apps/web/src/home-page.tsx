@@ -1,6 +1,7 @@
 import type { Expression } from "@exhibit-a/schema";
 import type { ReactNode } from "react";
 import { bustFrames } from "./art.ts";
+import objectionArt from "./assets/effects/objection.webp";
 import { bundledCases } from "./cases.ts";
 import { CourtroomBackdrop } from "./courtroom-backdrop.tsx";
 import { docsReports } from "./docs-reports.ts";
@@ -31,18 +32,45 @@ function Sprite({ speaker, expression }: { speaker: Speaker; expression: Express
 
 function BugNote() {
   return (
-    <div className="mb-10 w-32 -rotate-3 border-4 border-[#2b1a0e] bg-[#f6ead0] p-2 text-left text-[#2b1a0e] shadow-[6px_6px_0_#000]">
-      <p className="font-display text-sm text-[#8b1d1d]">BUG #3</p>
-      <p className="text-xs leading-tight">Stock went negative on the last baguette</p>
+    <div className="relative mb-8 w-[82%] -rotate-3 border-4 border-[#2b1a0e] bg-[#f6ead0] p-3 text-left text-[#2b1a0e] shadow-[6px_6px_0_#000]">
+      <span
+        aria-hidden="true"
+        className="absolute -top-3 left-1/2 size-5 -translate-x-1/2 rounded-full border-2 border-black bg-red-600"
+      />
+      <p className="font-display text-base text-[#8b1d1d]">BUG #3 · URGENT</p>
+      <p className="mt-1 text-sm leading-tight font-extrabold">
+        Stock went negative on the last baguette
+      </p>
+      <div aria-hidden="true" className="mt-2 flex flex-col gap-1">
+        <span className="h-1.5 w-full bg-[#2b1a0e]/25" />
+        <span className="h-1.5 w-4/5 bg-[#2b1a0e]/25" />
+        <span className="h-1.5 w-3/5 bg-[#2b1a0e]/25" />
+      </div>
     </div>
   );
 }
 
-function Stamp() {
+function Objecting() {
   return (
-    <p className="mb-14 -rotate-6 border-4 border-red-500 bg-black/60 px-3 font-display text-4xl tracking-widest text-red-400">
-      GUILTY
-    </p>
+    <div className="relative flex h-full w-full items-end justify-center">
+      <Sprite speaker="prosecutor" expression="angry" />
+      <img
+        src={objectionArt}
+        alt=""
+        className="absolute top-6 right-0 w-28 rotate-6 drop-shadow-[0_3px_0_#000]"
+      />
+    </div>
+  );
+}
+
+function Verdict() {
+  return (
+    <div className="relative flex h-full w-full items-end justify-center">
+      <Sprite speaker="judge" expression="angry" />
+      <p className="absolute bottom-8 left-1/2 -translate-x-1/2 -rotate-12 border-4 border-red-500 bg-black/70 px-2 font-display text-3xl tracking-widest text-red-400 shadow-[4px_4px_0_#000]">
+        GUILTY
+      </p>
+    </div>
   );
 }
 
@@ -60,13 +88,13 @@ const flow: { title: string; text: string; art: ReactNode }[] = [
   },
   {
     title: "Object & judge",
-    text: "The prosecutor attacks; plain code re-runs every piece of evidence.",
-    art: <Sprite speaker="judge" expression="angry" />,
+    text: "An independent prosecutor objects; plain code re-runs every piece of evidence.",
+    art: <Objecting />,
   },
   {
     title: "Verdict",
     text: "Culprit, root cause, fix, and commands to check it yourself.",
-    art: <Stamp />,
+    art: <Verdict />,
   },
 ];
 
@@ -351,17 +379,12 @@ export function HomePage() {
 
       <Section eyebrow="THE SOLUTION" title="Put the bug on trial">
         <div className="relative">
-          {/* The level path: the stages sit on it like a stage select screen. */}
-          <div
-            aria-hidden="true"
-            className="absolute top-[110px] right-[8%] left-[8%] hidden h-2 md:block"
-            style={{
-              background: "repeating-linear-gradient(90deg, #fcd34d 0 16px, transparent 16px 28px)",
-            }}
-          />
           <ol className="relative grid gap-5 md:grid-cols-5">
             {flow.map((step, index) => (
-              <li key={step.title} className="group flex flex-col items-center text-center">
+              <li
+                key={step.title}
+                className="group relative flex flex-col items-center text-center"
+              >
                 <PixelFrame
                   fill="radial-gradient(circle at 50% 70%, #243a78 0%, #0b1330 75%)"
                   frame="#e2e8f0"
@@ -374,6 +397,12 @@ export function HomePage() {
                     {step.art}
                   </div>
                 </PixelFrame>
+                {index < flow.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-[108px] -right-5 z-10 hidden h-2 w-5 bg-amber-300 shadow-[0_2px_0_#000] md:block"
+                  />
+                )}
                 <p className="mt-3 flex items-center gap-2 font-display text-2xl tracking-wide text-amber-50">
                   <span
                     aria-hidden="true"

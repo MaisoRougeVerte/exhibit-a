@@ -1,3 +1,4 @@
+import type { Expression } from "@exhibit-a/schema";
 import type { ReactNode } from "react";
 import { bustFrames } from "./art.ts";
 import { bundledCases } from "./cases.ts";
@@ -15,23 +16,57 @@ import { findTimeline, firstTimeline } from "./timelines.ts";
 const SO_2025 = "https://survey.stackoverflow.co/2025/ai";
 const METR_2025 = "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/";
 
-const flow = [
-  { title: "Bug report", text: "A GitHub issue or a report in plain words, as a user wrote it." },
+function Sprite({ speaker, expression }: { speaker: Speaker; expression: Expression }) {
+  const url = bustFrames(speaker, expression)?.idle;
+  return url === undefined ? null : (
+    <img
+      src={url}
+      alt=""
+      width={160}
+      height={160}
+      className="size-40 object-contain object-bottom"
+    />
+  );
+}
+
+function BugNote() {
+  return (
+    <div className="mb-3 w-32 -rotate-3 border-4 border-[#2b1a0e] bg-[#f6ead0] p-2 text-left text-[#2b1a0e] shadow-[6px_6px_0_#000]">
+      <p className="font-display text-sm text-[#8b1d1d]">BUG #3</p>
+      <p className="text-xs leading-tight">Stock went negative on the last baguette</p>
+    </div>
+  );
+}
+
+function Stamp() {
+  return (
+    <p className="mb-6 -rotate-6 border-4 border-red-500 bg-black/60 px-3 font-display text-4xl tracking-widest text-red-400">
+      GUILTY
+    </p>
+  );
+}
+
+const flow: { title: string; text: string; art: ReactNode }[] = [
+  { title: "Bug report", text: "An issue, written the way a user saw it.", art: <BugNote /> },
   {
-    title: "Investigation",
-    text: "IBM Bob explores history, logs and code in parallel and writes a failing reproduction test.",
+    title: "Investigate",
+    text: "Bob explores history, logs and code in parallel, and writes a failing test.",
+    art: <Sprite speaker="investigator" expression="thinking" />,
   },
   {
-    title: "Claims + evidence",
-    text: "Every claim cites something runnable: a test, a commit replay, a log search, a bisect.",
+    title: "Accuse",
+    text: "Every claim cites runnable evidence: test, replay, log search, bisect.",
+    art: <Sprite speaker="investigator" expression="confident" />,
   },
   {
-    title: "Objection & judge",
-    text: "An independent prosecutor attacks each claim; plain code re-runs every piece of evidence.",
+    title: "Object & judge",
+    text: "The prosecutor attacks; plain code re-runs every piece of evidence.",
+    art: <Sprite speaker="judge" expression="angry" />,
   },
   {
     title: "Verdict",
-    text: "Culprit commit, root cause, fix, regression test, and the commands to check it yourself.",
+    text: "Culprit, root cause, fix, and commands to check it yourself.",
+    art: <Stamp />,
   },
 ];
 
@@ -257,45 +292,42 @@ export function HomePage() {
         </PixelFrame>
       </Section>
 
-      <Section
-        eyebrow="THE SOLUTION"
-        title="Put the bug on trial: only proven claims reach the verdict"
-      >
-        <ol className="grid gap-3 md:grid-cols-5">
-          {flow.map((step, index) => (
-            <li key={step.title} className="relative flex">
-              <PixelFrame
-                fill={
-                  index === flow.length - 1
-                    ? "linear-gradient(180deg, #7c5a12, #3a2806)"
-                    : NAVY_PANEL
-                }
-                className="flex-1"
-              >
-                <div className="flex h-full flex-col gap-2 p-4">
-                  <p className="font-display text-3xl leading-none text-amber-300">{index + 1}</p>
-                  <p className="font-display text-xl tracking-wide text-amber-50">{step.title}</p>
-                  <p className="text-sm text-white/80">{step.text}</p>
-                </div>
-              </PixelFrame>
-              {index < flow.length - 1 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1/2 -right-3 z-10 hidden -translate-y-1/2 font-display text-2xl text-amber-300 md:block"
-                >
-                  {">"}
+      <Section eyebrow="THE SOLUTION" title="Put the bug on trial">
+        <div className="relative">
+          {/* The level track the five stages sit on. */}
+          <div
+            aria-hidden="true"
+            className="absolute top-[184px] right-[10%] left-[10%] hidden h-2 md:block"
+            style={{
+              background: "repeating-linear-gradient(90deg, #fcd34d 0 16px, transparent 16px 28px)",
+            }}
+          />
+          <ol className="relative grid gap-6 md:grid-cols-5">
+            {flow.map((step, index) => (
+              <li key={step.title} className="flex flex-col items-center text-center">
+                <div className="flex h-40 items-end justify-center">{step.art}</div>
+                <span className="relative z-10 mt-2 grid size-10 place-items-center border-4 border-[#0b1220] bg-amber-300 font-display text-xl text-[#0b1220]">
+                  {index + 1}
                 </span>
-              )}
-            </li>
-          ))}
-        </ol>
-        <div className="grid gap-5 md:grid-cols-2">
-          <PixelFrame fill="linear-gradient(180deg, rgba(40,40,48,0.95), rgba(14,14,20,0.95))">
+                <p className="mt-3 font-display text-2xl tracking-wide text-amber-50">
+                  {step.title}
+                </p>
+                <p className="mt-1 max-w-56 text-sm text-white/75">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="mt-6 grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
+          <PixelFrame
+            fill="linear-gradient(180deg, rgba(40,40,48,0.95), rgba(14,14,20,0.95))"
+            frame="#6b7280"
+          >
             <div className="p-5">
-              <p className="font-display text-xl tracking-[0.2em] text-white/60">
-                A TYPICAL AI ASSISTANT
+              <p className="font-display text-2xl tracking-[0.15em] text-white/55">
+                TYPICAL AI ASSISTANT
               </p>
-              <ul className="mt-3 flex flex-col gap-2 text-white/75">
+              <ul className="mt-3 flex flex-col gap-2 text-white/70">
                 {typical.map((line) => (
                   <li key={line} className="flex gap-2">
                     <span className="font-display text-red-400">x</span>
@@ -305,9 +337,12 @@ export function HomePage() {
               </ul>
             </div>
           </PixelFrame>
-          <PixelFrame fill={NAVY_PANEL}>
+          <p className="self-center justify-self-center font-display text-7xl text-red-500 [text-shadow:3px_0_0_#000,-3px_0_0_#000,0_3px_0_#000,0_-3px_0_#000,0_8px_0_#7f1d1d]">
+            VS
+          </p>
+          <PixelFrame fill={NAVY_PANEL} frame="#fcd34d">
             <div className="p-5">
-              <p className="font-display text-xl tracking-[0.2em] text-amber-300">EXHIBIT A</p>
+              <p className="font-display text-2xl tracking-[0.15em] text-amber-300">EXHIBIT A</p>
               <ul className="mt-3 flex flex-col gap-2 text-white/95">
                 {exhibit.map((line) => (
                   <li key={line} className="flex gap-2">

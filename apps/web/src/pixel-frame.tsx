@@ -30,13 +30,13 @@ export function PixelFrame({
     <div className={/\b(absolute|fixed)\b/.test(className) ? className : `relative ${className}`}>
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-slate-100"
-        style={{ clipPath: PIXEL_CORNERS }}
+        className="absolute inset-0"
+        style={{ clipPath: PIXEL_CORNERS, background: frame }}
       />
       <div
         aria-hidden="true"
-        className="absolute inset-[3px] bg-[#05070f]"
-        style={{ clipPath: PIXEL_CORNERS }}
+        className="absolute inset-[3px]"
+        style={{ clipPath: PIXEL_CORNERS, background: gap }}
       />
       <div
         aria-hidden="true"

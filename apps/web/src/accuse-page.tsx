@@ -190,7 +190,7 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
           fill={PARCHMENT}
           frame="#2b1a0e"
           gap="#c9a86a"
-          className="absolute top-[14%] left-[2%] z-20 h-[54%] w-[46%] shadow-2xl portrait:w-[96%]"
+          className="absolute top-[14%] left-[2%] z-20 h-[49%] w-[46%] shadow-2xl portrait:w-[96%]"
         >
           <div className="flex h-full flex-col px-[1.1em] py-[0.8em] text-vn-small text-[#2b1a0e]">
             <div className="mb-2 flex items-baseline justify-between gap-2 border-b-2 border-dashed border-[#2b1a0e]/40 pb-1">

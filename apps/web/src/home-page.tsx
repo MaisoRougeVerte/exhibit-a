@@ -10,11 +10,9 @@ import { accuseHref, docsHref, reportHref, trialHref } from "./route.ts";
 import type { Speaker } from "./scene.ts";
 import { scoreboard } from "./scoreboard.ts";
 import { findTimeline, firstTimeline } from "./timelines.ts";
+import { type MenuItem, TitleMenu } from "./title-menu.tsx";
 
 const recorded = bundledCases.filter((caseFile) => caseFile.source === "bob-ide");
-
-const menuButton =
-  "rounded-sm border-2 border-white/70 bg-black/85 px-[3em] py-[0.35em] text-center hover:bg-white/15";
 
 function Section({
   eyebrow,
@@ -102,56 +100,55 @@ export function HomePage() {
   const docs = docsReports[0];
   const docsBroken = docs?.findings.filter((finding) => finding.status === "broken").length ?? 0;
   const firstCase = recorded[0];
+  const menu: MenuItem[] = [
+    ...(firstCase === undefined
+      ? []
+      : [
+          {
+            label: "Watch a trial",
+            href: trialHref(firstCase.id),
+            hint: "Replay a real trial run by IBM Bob, objection included.",
+          },
+        ]),
+    {
+      label: "Set up your project",
+      href: "#/setup",
+      hint: "Four commands to put your own repository on trial.",
+    },
+    ...(timeline === undefined
+      ? []
+      : [
+          {
+            label: "Accuse a commit",
+            href: accuseHref(timeline.caseId),
+            hint: "Pick a suspect in the git history; the judge checks its alibi.",
+          },
+        ]),
+    {
+      label: "Dashboard",
+      href: "#/dashboard",
+      hint: "Trials, survival rate and docs verdict, per repository.",
+    },
+  ];
 
   return (
     <main className="bg-[#060a18] text-white">
       <section className="@container relative min-h-dvh overflow-hidden">
         <CourtroomBackdrop position="defense" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/50 to-black/75" />
-        <div className="relative flex min-h-dvh flex-col items-center justify-center gap-[2cqw] px-[6%] pb-28 text-center">
-          <PixelFrame
-            fill="linear-gradient(180deg, rgba(10,16,38,0.88), rgba(4,7,18,0.92))"
-            className="max-w-[92%]"
-          >
-            <div className="flex flex-col items-center gap-[1cqw] px-[4cqw] py-[2.2cqw]">
-              <p className="font-display text-vn-tag tracking-[0.5em] text-amber-300">
-                DEBUGGING ON TRIAL
-              </p>
-              <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-100 [text-shadow:0_5px_0_#000]">
-                EXHIBIT A
-              </h1>
-              <p className="text-vn-lead font-extrabold text-white">
-                Your AI says it found the bug. Make it prove it.
-              </p>
-            </div>
-          </PixelFrame>
-          <nav className="mt-[1cqw] flex flex-col items-stretch gap-[0.9cqw] text-vn-menu portrait:gap-3">
-            {firstCase !== undefined && (
-              <a
-                href={trialHref(firstCase.id)}
-                className={`${menuButton} border-amber-300 font-extrabold`}
-              >
-                Watch a trial
-              </a>
-            )}
-            <a
-              href="#/setup"
-              className={`${menuButton} border-emerald-300 font-extrabold text-emerald-100`}
-            >
-              Set it up on your project
-            </a>
-            {timeline !== undefined && (
-              <a href={accuseHref(timeline.caseId)} className={menuButton}>
-                Accuse a commit yourself
-              </a>
-            )}
-            <a href="#/dashboard" className={menuButton}>
-              Open the dashboard
-            </a>
-          </nav>
-          <p className="rounded-sm bg-black/60 px-3 py-1 text-vn-small text-white/80">
-            Scroll to learn more ↓
-          </p>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/80" />
+        <div className="relative flex min-h-dvh flex-col items-center justify-center gap-[3cqw] px-[4%] pb-28 text-center">
+          <div className="flex flex-col items-center gap-[1.2cqw]">
+            <p className="font-display text-vn-tag tracking-[0.5em] text-amber-300 [text-shadow:2px_2px_0_#000]">
+              DEBUGGING ON TRIAL
+            </p>
+            <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-100 [text-shadow:4px_0_0_#1a0f06,-4px_0_0_#1a0f06,0_4px_0_#1a0f06,0_-4px_0_#1a0f06,4px_4px_0_#1a0f06,-4px_4px_0_#1a0f06,4px_-4px_0_#1a0f06,-4px_-4px_0_#1a0f06,0_12px_0_#7c2d12]">
+              EXHIBIT A
+            </h1>
+            <p className="bg-black/75 px-4 py-1 text-vn-lead font-extrabold text-white">
+              Your AI says it found the bug. Make it prove it.
+            </p>
+          </div>
+          <TitleMenu items={menu} />
         </div>
         <PixelFade className="absolute inset-x-0 bottom-0" />
       </section>

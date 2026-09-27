@@ -3,6 +3,7 @@ import { AccusePage } from "./accuse-page.tsx";
 import { findCase } from "./cases.ts";
 import { DashboardPage } from "./dashboard-page.tsx";
 import { HomePage } from "./home-page.tsx";
+import { PageShell, Panel } from "./page-shell.tsx";
 import { RemoteTrialPage } from "./remote-trial-page.tsx";
 import { ReportPage } from "./report-page.tsx";
 import { findTimeline } from "./timelines.ts";
@@ -12,14 +13,16 @@ import { useRoute } from "./use-route.ts";
 
 function NotFound() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-stone-950 text-white">
-      <p>
-        Nothing here.{" "}
-        <a href="#/" className="text-brass-400 underline">
+    <PageShell eyebrow="CASE DISMISSED" title="Nothing here" backdrop="bench">
+      <Panel title="The court finds no such page">
+        <a
+          href="#/"
+          className="inline-block rounded-sm bg-amber-500 px-4 py-1.5 font-extrabold text-stone-950"
+        >
           Back to the court
         </a>
-      </p>
-    </main>
+      </Panel>
+    </PageShell>
   );
 }
 

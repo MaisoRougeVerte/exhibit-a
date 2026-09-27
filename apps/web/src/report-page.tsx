@@ -1,7 +1,12 @@
 import type { CaseFile, VerdictEvent } from "@exhibit-a/schema";
+import { useState } from "react";
+import { CommitText } from "./commit-text.tsx";
 import { CourtRecord } from "./court-record.tsx";
-import { trialHref } from "./route.ts";
+import { PageShell, Panel } from "./page-shell.tsx";
+import { accuseHref, trialHref } from "./route.ts";
 import { courtRecord } from "./scene.ts";
+import { findTimeline } from "./timelines.ts";
+import { commandsFor } from "./verdict-card.tsx";
 
 type ReportPageProps = {
   caseFile: CaseFile;
@@ -12,72 +17,100 @@ function verdictOf(caseFile: CaseFile): VerdictEvent | undefined {
   return last?.type === "verdict" ? last : undefined;
 }
 
+function CopyCommands({ commands }: { commands: readonly string[] }) {
+  const [copied, setCopied] = useState<string | undefined>(undefined);
+  return (
+    <ul className="flex flex-col gap-1.5">
+      {commands.map((command) => (
+        <li key={command}>
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard.writeText(command).then(() => setCopied(command));
+            }}
+            className="w-full truncate rounded-sm bg-black/50 px-3 py-1.5 text-left font-mono text-sm text-sky-200 hover:bg-black/70"
+          >
+            {copied === command ? "✓ copied" : `$ ${command}`}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const hud = "rounded border border-white/60 bg-black/60 px-3 py-1 hover:bg-black/80";
+
 export function ReportPage({ caseFile }: ReportPageProps) {
   const verdict = verdictOf(caseFile);
-  const withdrawn = caseFile.events.filter((event) => event.type === "withdrawal").length;
   const record = courtRecord(caseFile, caseFile.events.length - 1);
-  const rejected = record.filter((entry) => entry.status !== "upheld").length;
+  const withdrawn = caseFile.events.filter((event) => event.type === "withdrawal").length;
+  const notUpheld = record.filter((entry) => entry.status !== "upheld").length;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-8 bg-stone-950 px-6 py-10 text-white">
-      <nav className="flex justify-between text-sm text-white/60">
-        <a href="#/" className="hover:text-white">
-          ← Exhibit A
-        </a>
-        <a href={trialHref(caseFile.id)} className="hover:text-white">
-          Replay the trial
-        </a>
-      </nav>
-
-      <header>
-        <p className="text-sm uppercase tracking-widest text-brass-400">Verdict report</p>
-        <h1 className="font-display text-4xl">{caseFile.title}</h1>
-        <p className="mt-2 text-white/60">
-          {caseFile.repo.name} at {caseFile.repo.head}
-          {caseFile.source === "fixture" && " · hand-written sample, not a recorded Bob run"}
-        </p>
-      </header>
-
-      <section className="rounded-xl bg-wood-900 p-5">
-        <h2 className="font-display text-xl text-brass-400">Bug report</h2>
-        <p className="mt-1 font-extrabold">{caseFile.bugReport.title}</p>
-        <p className="mt-2 text-white/80">{caseFile.bugReport.body}</p>
-      </section>
-
+    <PageShell
+      eyebrow="VERDICT REPORT"
+      title={caseFile.bugReport.title}
+      backdrop="bench"
+      subtitle={
+        <>
+          {caseFile.repo.name} at <CommitText text={caseFile.repo.head} />
+          {caseFile.source === "fixture" && " · hand-written sample"}
+        </>
+      }
+      actions={
+        <>
+          <a href={trialHref(caseFile.id)} className={hud}>
+            Replay the trial
+          </a>
+          {findTimeline(caseFile.id) !== undefined && (
+            <a href={accuseHref(caseFile.id)} className={hud}>
+              Accuse a commit
+            </a>
+          )}
+        </>
+      }
+    >
       {verdict !== undefined && (
-        <section className="grid gap-4 rounded-xl border border-brass-500/40 bg-black/40 p-5">
-          <h2 className="font-display text-xl text-brass-400">Verdict</h2>
-          <dl className="grid gap-3 sm:grid-cols-[10rem_1fr]">
-            <dt className="text-white/60">Root cause</dt>
-            <dd>{verdict.rootCause}</dd>
+        <Panel title="Verdict">
+          <div className="flex flex-col gap-4">
             {verdict.culpritCommit !== undefined && (
-              <>
-                <dt className="text-white/60">Culprit commit</dt>
-                <dd className="font-mono">{verdict.culpritCommit}</dd>
-              </>
+              <p className="flex items-center gap-4">
+                <span className="-rotate-3 border-4 border-red-500 px-3 font-display text-3xl tracking-widest text-red-400">
+                  GUILTY
+                </span>
+                <span className="text-xl">
+                  <CommitText text={verdict.culpritCommit} />
+                </span>
+              </p>
             )}
-            {verdict.regressionTest !== undefined && (
-              <>
-                <dt className="text-white/60">Regression test</dt>
-                <dd className="font-mono text-sm">
-                  {verdict.regressionTest.file}
-                  {verdict.regressionTest.testName !== undefined &&
-                    ` › ${verdict.regressionTest.testName}`}
-                </dd>
-              </>
-            )}
-            <dt className="text-white/60">Fix</dt>
-            <dd>{verdict.fixSummary}</dd>
-            <dt className="text-white/60">Trial</dt>
-            <dd>
-              {record.length} pieces of evidence re-run by the judge, {rejected} not upheld,{" "}
-              {withdrawn} claim{withdrawn === 1 ? "" : "s"} withdrawn.
-            </dd>
-          </dl>
-        </section>
+            <p>
+              <span className="font-display text-lg tracking-wider text-amber-300">
+                Root cause ·{" "}
+              </span>
+              <CommitText text={verdict.rootCause} />
+            </p>
+            <p>
+              <span className="font-display text-lg tracking-wider text-amber-300">Fix · </span>
+              {verdict.fixSummary}
+            </p>
+            <CopyCommands commands={commandsFor(caseFile, verdict)} />
+            <p className="text-sm text-white/70">
+              {record.length} pieces of evidence re-run by the judge · {notUpheld} not upheld ·{" "}
+              {withdrawn} claim{withdrawn === 1 ? "" : "s"} withdrawn
+            </p>
+          </div>
+        </Panel>
       )}
 
-      <CourtRecord entries={record} />
-    </main>
+      <div className="grid gap-8 lg:grid-cols-[2fr_3fr]">
+        <Panel title="Bug report" tone="parchment" className="self-start">
+          <p className="font-extrabold">{caseFile.bugReport.title}</p>
+          <p className="mt-2 leading-relaxed">{caseFile.bugReport.body}</p>
+        </Panel>
+        <Panel title="Court record" tone="parchment">
+          <CourtRecord entries={record} />
+        </Panel>
+      </div>
+    </PageShell>
   );
 }

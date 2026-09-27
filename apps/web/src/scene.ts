@@ -148,3 +148,9 @@ export function courtRecord(caseFile: CaseFile, eventIndex: number): RecordEntry
   }
   return [...entries.values()];
 }
+
+/** The useful part of a test output: the failure line and what follows, never the stack. */
+export function excerptSummary(excerpt: string): string {
+  const lines = excerpt.split("\n").filter((line) => line.trim() !== "" && !/^\s*at\s/.test(line));
+  return lines.slice(0, 3).join("\n");
+}

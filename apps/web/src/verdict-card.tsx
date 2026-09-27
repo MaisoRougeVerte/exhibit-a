@@ -11,7 +11,7 @@ type VerdictCardProps = {
   canAccuse: boolean;
 };
 
-function commandsFor(caseFile: CaseFile, verdict: VerdictEvent): string[] {
+export function commandsFor(caseFile: CaseFile, verdict: VerdictEvent): string[] {
   const test = verdict.regressionTest;
   const run =
     test === undefined

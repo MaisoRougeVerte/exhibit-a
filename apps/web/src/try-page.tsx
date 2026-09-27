@@ -1,3 +1,4 @@
+import { PageShell, Panel } from "./page-shell.tsx";
 import { accuseHref } from "./route.ts";
 
 const ways = [
@@ -40,35 +41,31 @@ const ways = [
 
 export function TryPage() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-8 bg-stone-950 px-6 py-10 text-white">
-      <nav className="text-sm text-white/60">
-        <a href="#/" className="hover:text-white">
-          ← Exhibit A
-        </a>
-      </nav>
-      <header>
-        <p className="text-sm uppercase tracking-widest text-brass-400">Try it</p>
-        <h1 className="font-display text-4xl">Ways to test Exhibit A</h1>
-      </header>
-      <ul className="grid gap-4 sm:grid-cols-2">
+    <PageShell eyebrow="TRY IT" title="Ways to test Exhibit A" backdrop="defense">
+      <ul className="grid gap-6 sm:grid-cols-2">
         {ways.map((way) => (
-          <li key={way.title} className="flex flex-col gap-3 rounded-xl bg-wood-900 p-5">
-            <span
-              className={`self-start rounded px-2 py-0.5 text-xs uppercase ${way.status === "Available" ? "bg-emerald-700" : "bg-stone-700"}`}
+          <li key={way.title} className="flex">
+            <Panel
+              title={way.title}
+              tone={way.status === "Available" ? "navy" : "parchment"}
+              className="flex-1"
             >
-              {way.status}
-            </span>
-            <h2 className="font-display text-2xl">{way.title}</h2>
-            <p className="flex-1 text-white/75">{way.text}</p>
-            <a
-              href={way.href}
-              className="self-start rounded border border-white/30 px-4 py-2 text-sm hover:bg-white/10"
-            >
-              {way.cta}
-            </a>
+              <p
+                className={`mb-3 inline-block -rotate-3 border-2 px-2 font-display text-sm tracking-widest ${way.status === "Available" ? "border-emerald-400 text-emerald-300" : "border-[#8b1d1d] text-[#8b1d1d]"}`}
+              >
+                {way.status.toUpperCase()}
+              </p>
+              <p className="leading-relaxed opacity-90">{way.text}</p>
+              <a
+                href={way.href}
+                className={`mt-4 inline-block rounded-sm px-4 py-1.5 font-extrabold ${way.status === "Available" ? "bg-amber-500 text-stone-950" : "border-2 border-[#2b1a0e]"}`}
+              >
+                {way.cta}
+              </a>
+            </Panel>
           </li>
         ))}
       </ul>
-    </main>
+    </PageShell>
   );
 }

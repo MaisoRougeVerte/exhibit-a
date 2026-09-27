@@ -1,6 +1,7 @@
 import { type FormEvent, Suspense, use, useState } from "react";
 import { saveConnectedRepos, useConnectedRepos } from "./connected-repos.ts";
 import { fetchTrials, parseRepoInput, TRIALS_BRANCH } from "./github.ts";
+import { PageShell, Panel } from "./page-shell.tsx";
 import { remoteTrialHref } from "./route.ts";
 
 // Flipped once the reusable GitHub Action is published; until then setup is shown as roadmap.
@@ -9,10 +10,10 @@ const ACTION_READY = false;
 function RepoTrials({ owner, repo }: { owner: string; repo: string }) {
   const trials = use(fetchTrials(owner, repo));
   if (!trials.ok)
-    return <p className="text-sm text-red-300">Could not read the repo: {trials.error}.</p>;
+    return <p className="text-sm text-red-800">Could not read the repo: {trials.error}.</p>;
   if (trials.value.length === 0) {
     return (
-      <p className="text-sm text-white/60">
+      <p className="text-sm opacity-80">
         No trial yet. Trials appear here once published on the <code>{TRIALS_BRANCH}</code> branch,
         under <code>cases/</code>.
       </p>
@@ -23,11 +24,11 @@ function RepoTrials({ owner, repo }: { owner: string; repo: string }) {
       {trials.value.map(({ file, caseFile }) => (
         <li
           key={file}
-          className="flex items-center justify-between gap-3 rounded bg-black/40 px-3 py-2"
+          className="flex items-center justify-between gap-3 rounded-sm border-2 border-[#2b1a0e]/30 bg-[#fbf3df] px-3 py-2"
         >
           <span>
             {caseFile.title}
-            <span className="ml-2 text-sm text-white/50">{caseFile.bugReport.title}</span>
+            <span className="ml-2 text-sm opacity-60">{caseFile.bugReport.title}</span>
           </span>
           <a
             href={remoteTrialHref(owner, repo, file)}
@@ -44,8 +45,10 @@ function RepoTrials({ owner, repo }: { owner: string; repo: string }) {
 function SetupSteps({ owner, repo }: { owner: string; repo: string }) {
   if (!ACTION_READY) {
     return (
-      <p className="text-sm text-white/60">
-        <span className="mr-2 rounded bg-stone-700 px-2 py-0.5 text-xs uppercase">Roadmap</span>
+      <p className="text-sm opacity-80">
+        <span className="mr-2 rounded bg-stone-700 text-white px-2 py-0.5 text-xs uppercase">
+          Roadmap
+        </span>
         One-click setup of the GitHub Action for {owner}/{repo} ships with the action.
       </p>
     );
@@ -78,65 +81,56 @@ export function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-8 bg-stone-950 px-6 py-10 text-white">
-      <nav className="text-sm text-white/60">
-        <a href="#/" className="hover:text-white">
-          ← Exhibit A
-        </a>
-      </nav>
-      <header>
-        <p className="text-sm uppercase tracking-widest text-brass-400">Dashboard</p>
-        <h1 className="font-display text-4xl">Your courtrooms</h1>
-        <p className="mt-3 text-white/75">
-          Connect a public GitHub repository to follow its trials. Nothing is stored on our side:
-          the list lives in this browser, trials are read from GitHub, and API keys only ever go
-          into your repository's GitHub secrets.
-        </p>
-      </header>
-
-      <form onSubmit={connect} className="flex flex-wrap gap-3">
-        <label className="sr-only" htmlFor="repo">
-          Repository
-        </label>
-        <input
-          id="repo"
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          placeholder="owner/repo"
-          className="min-w-64 flex-1 rounded bg-wood-900 px-4 py-2 text-white placeholder:text-white/40"
-        />
-        <button
-          type="submit"
-          className="rounded bg-brass-500 px-5 py-2 font-extrabold text-wood-950"
-        >
-          Connect
-        </button>
-        {error !== "" && <p className="w-full text-sm text-red-300">{error}</p>}
-      </form>
+    <PageShell
+      eyebrow="DASHBOARD"
+      title="Your courtrooms"
+      backdrop="prosecution"
+      subtitle="Connect a public GitHub repository to follow its trials. Nothing is stored on our side: the list lives in this browser, trials are read from GitHub, and API keys only ever go into your repository's GitHub secrets."
+    >
+      <Panel title="Connect a repository">
+        <form onSubmit={connect} className="flex flex-wrap gap-3">
+          <label className="sr-only" htmlFor="repo">
+            Repository
+          </label>
+          <input
+            id="repo"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder="owner/repo"
+            className="min-w-64 flex-1 rounded-sm border-2 border-white/40 bg-black/50 px-4 py-2 font-mono text-white placeholder:text-white/40"
+          />
+          <button
+            type="submit"
+            className="rounded-sm bg-amber-500 px-5 py-2 font-extrabold text-stone-950"
+          >
+            Connect
+          </button>
+          {error !== "" && <p className="w-full text-sm text-red-300">{error}</p>}
+        </form>
+      </Panel>
 
       {repos.map((fullName) => {
         const [owner = "", repo = ""] = fullName.split("/");
         return (
-          <section key={fullName} className="flex flex-col gap-3 rounded-xl bg-wood-900 p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl">{fullName}</h2>
+          <Panel key={fullName} title={fullName} tone="parchment">
+            <div className="flex flex-col gap-3">
+              <Suspense
+                fallback={<p className="text-sm opacity-70">Reading trials from GitHub…</p>}
+              >
+                <RepoTrials owner={owner} repo={repo} />
+              </Suspense>
+              <SetupSteps owner={owner} repo={repo} />
               <button
                 type="button"
                 onClick={() => saveConnectedRepos(repos.filter((name) => name !== fullName))}
-                className="text-sm text-white/50 hover:text-white"
+                className="self-start text-sm underline opacity-70 hover:opacity-100"
               >
                 Disconnect
               </button>
             </div>
-            <Suspense
-              fallback={<p className="text-sm text-white/50">Reading trials from GitHub…</p>}
-            >
-              <RepoTrials owner={owner} repo={repo} />
-            </Suspense>
-            <SetupSteps owner={owner} repo={repo} />
-          </section>
+          </Panel>
         );
       })}
-    </main>
+    </PageShell>
   );
 }

@@ -86,7 +86,7 @@ Anyone can verify them without any AI:
 git clone --recurse-submodules https://github.com/MaisoRougeVerte/exhibit-a
 cd exhibit-a
 pnpm install && pnpm -C demo-repo install
-pnpm judge cases/framed-commit.json   # the judge re-runs every piece of evidence
+pnpm judge --check cases/framed-commit.json   # re-runs every piece of evidence, compares the rulings
 ```
 
 ## Try it

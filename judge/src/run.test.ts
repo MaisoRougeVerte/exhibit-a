@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
+import { caseFileShape } from "@exhibit-a/schema";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { runJudge } from "./run.ts";
@@ -394,6 +395,31 @@ describe("runJudge", () => {
   });
 
   describe("log-search evidence", () => {
+    it("keeps an excerpt within the schema limit when the output is long", async () => {
+      await writeFile(join(repo.dir, "app.log"), "short log\n");
+      const pattern = "x".repeat(1990);
+      const caseData = makeCase([
+        {
+          type: "claim",
+          id: "claim-1",
+          speaker: "investigator",
+          expression: "confident",
+          line: "A long pattern.",
+          evidence: [
+            { id: "ev-1", kind: "log-search", file: "app.log", pattern, expectMatches: 0 },
+          ],
+        },
+      ]);
+
+      const caseFile = join(repo.dir, "case.json");
+      await writeFile(caseFile, JSON.stringify(caseData, null, 2));
+
+      expect(await runJudge(caseFile, repo.dir)).toMatchObject({ ok: true });
+      const written = caseFileShape.parse(JSON.parse(await readFile(caseFile, "utf8")));
+      const ruling = written.events.find((e) => e.type === "ruling");
+      expect(ruling?.type === "ruling" && ruling.excerpt.length).toBeLessThanOrEqual(2000);
+    });
+
     it("upholds when the pattern match count equals expectMatches", async () => {
       await writeFile(
         join(repo.dir, "app.log"),
@@ -487,6 +513,39 @@ describe("runJudge", () => {
   });
 
   describe("bisect evidence", () => {
+    it("rules a bisect an error when the test cannot run in the range", async () => {
+      const goodSha = await headSha(repo.dir);
+      const brokenSha = await commitChange(repo.dir, "BROKEN", "chore: break the build");
+      await commitChange(repo.dir, "FAIL", "feat: introduce bug");
+      const badSha = await headSha(repo.dir);
+
+      const caseData = makeCase([
+        {
+          type: "claim",
+          id: "claim-1",
+          speaker: "investigator",
+          expression: "confident",
+          line: "Bisect names the culprit.",
+          evidence: [
+            {
+              id: "ev-1",
+              kind: "bisect",
+              file: "tests/subject.test.ts",
+              good: goodSha,
+              bad: badSha,
+              expectCulprit: brokenSha.slice(0, 7),
+            },
+          ],
+        },
+      ]);
+
+      const caseFile = join(repo.dir, "case.json");
+      await writeFile(caseFile, JSON.stringify(caseData, null, 2));
+
+      expect(await runJudge(caseFile, repo.dir)).toMatchObject({ ok: true });
+      expect(await readRuling(caseFile, "ev-1")).toMatchObject({ status: "error" });
+    });
+
     it("upholds when bisect finds the expected culprit commit", async () => {
       const goodSha = await headSha(repo.dir);
       const culpritSha = await commitChange(repo.dir, "FAIL // commit 2", "feat: introduce bug");
@@ -564,22 +623,22 @@ describe("runJudge", () => {
   });
 
   describe("file handling", () => {
-    it("skips evidence items that already have a ruling", async () => {
+    it("re-runs evidence that already has a ruling instead of trusting it", async () => {
       const caseData = makeCase([
         {
           type: "claim",
           id: "claim-1",
           speaker: "investigator",
           expression: "confident",
-          line: "Already-ruled claim.",
-          evidence: [{ id: "ev-1", kind: "test", file: "tests/subject.test.ts", expect: "pass" }],
+          line: "The test fails.",
+          evidence: [{ id: "ev-1", kind: "test", file: "tests/subject.test.ts", expect: "fail" }],
         },
         {
           type: "ruling",
           evidenceId: "ev-1",
           status: "upheld",
-          exitCode: 0,
-          excerpt: "already ruled",
+          exitCode: 1,
+          excerpt: "written by hand",
           durationMs: 1,
         },
       ]);
@@ -588,7 +647,82 @@ describe("runJudge", () => {
       await writeFile(caseFile, JSON.stringify(caseData, null, 2));
 
       const result = await runJudge(caseFile, repo.dir);
-      expect(result).toMatchObject({ ok: true, ruledCount: 0 });
+      expect(result).toMatchObject({ ok: true, ruledCount: 1, changed: ["ev-1"] });
+      expect(await readRuling(caseFile, "ev-1")).toMatchObject({ status: "rejected" });
+    });
+
+    it("refuses a verdict built on a forged ruling and leaves the file untouched", async () => {
+      const caseData = makeCase([
+        {
+          type: "claim",
+          id: "claim-1",
+          speaker: "investigator",
+          expression: "confident",
+          line: "The test fails.",
+          evidence: [{ id: "ev-1", kind: "test", file: "tests/subject.test.ts", expect: "fail" }],
+        },
+        {
+          type: "ruling",
+          evidenceId: "ev-1",
+          status: "upheld",
+          exitCode: 1,
+          excerpt: "written by hand",
+          durationMs: 1,
+        },
+        {
+          type: "verdict",
+          rootCause: "The bug.",
+          upheldClaims: ["claim-1"],
+          fixSummary: "Fix it.",
+          line: "Case closed.",
+        },
+      ]);
+
+      const caseFile = join(repo.dir, "case.json");
+      const original = JSON.stringify(caseData, null, 2);
+      await writeFile(caseFile, original);
+
+      const result = await runJudge(caseFile, repo.dir);
+      expect(result).toMatchObject({ ok: false });
+      if (!result.ok) expect(result.reason).toContain("did not uphold");
+      expect(await readFile(caseFile, "utf8")).toBe(original);
+    });
+
+    it("rejects a mid-trial file with integrity errors before running anything", async () => {
+      const claim = {
+        type: "claim",
+        id: "claim-1",
+        speaker: "investigator",
+        expression: "confident",
+        line: "A claim.",
+        evidence: [{ id: "ev-1", kind: "test", file: "tests/subject.test.ts", expect: "pass" }],
+      };
+      const caseFile = join(repo.dir, "case.json");
+      await writeFile(caseFile, JSON.stringify(makeCase([claim, claim]), null, 2));
+
+      const result = await runJudge(caseFile, repo.dir);
+      expect(result).toMatchObject({ ok: false });
+      if (!result.ok) expect(result.reason).toContain("duplicate id");
+    });
+
+    it("does not write the file in check mode", async () => {
+      const caseData = makeCase([
+        {
+          type: "claim",
+          id: "claim-1",
+          speaker: "investigator",
+          expression: "confident",
+          line: "The test passes.",
+          evidence: [{ id: "ev-1", kind: "test", file: "tests/subject.test.ts", expect: "pass" }],
+        },
+      ]);
+      const caseFile = join(repo.dir, "case.json");
+      const original = JSON.stringify(caseData, null, 2);
+      await writeFile(caseFile, original);
+
+      const result = await runJudge(caseFile, repo.dir, { write: false });
+      expect(result).toMatchObject({ ok: true, ruledCount: 1, changed: [] });
+      expect(await readFile(caseFile, "utf8")).toBe(original);
     });
 
     it("returns ok:false for a missing .exhibit-a.json", async () => {

@@ -1,71 +1,76 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { CaseEvent, CaseFileShape } from "@exhibit-a/schema";
-import { caseFileShape, parseCaseFile } from "@exhibit-a/schema";
+import type { CaseEvent, CaseFileShape, Evidence } from "@exhibit-a/schema";
+import { caseFileShape, checkIntegrity } from "@exhibit-a/schema";
 import { z } from "zod";
 import { readRepoConfig } from "./repo-config.ts";
 import { ruleEvidence } from "./rules.ts";
+import { truncate } from "./run-test.ts";
 
-export type RunResult = { ok: true; ruledCount: number } | { ok: false; reason: string };
+type RulingEvent = Extract<CaseEvent, { type: "ruling" }>;
+
+export type RunResult =
+  | { ok: true; ruledCount: number; changed: string[] }
+  | { ok: false; reason: string };
+
+export type RunOptions = { write: boolean };
 
 /**
- * Loads a case file, rules every evidence item that has no ruling yet,
- * appends the ruling events, writes the file back, and re-validates.
- *
- * Uses caseFileShape (shape-only, no integrity) for the initial parse so it
- * can operate on mid-trial files that have no verdict yet.  The full
- * parseCaseFile is called at the very end to confirm the final state is valid.
+ * Re-runs every evidence item of a case file, even the ones that already carry a ruling:
+ * a ruling written by anyone but the judge is never trusted. Existing rulings are replaced
+ * in place, new ones go before the verdict. The file is written back only if the result
+ * passes the integrity rules; a mid-trial file may still lack its verdict.
  *
  * Returns { ok: false } for expected failures; throws only for programmer errors.
  */
-export async function runJudge(caseFilePath: string, repoDir: string): Promise<RunResult> {
+export async function runJudge(
+  caseFilePath: string,
+  repoDir: string,
+  options: RunOptions = { write: true },
+): Promise<RunResult> {
   const absCase = resolve(caseFilePath);
   const absRepo = resolve(repoDir);
 
-  const parseResult = await loadCaseFile(absCase);
-  if (!parseResult.ok) return parseResult;
-  const { json, caseFile } = parseResult;
+  const loaded = await loadCaseFile(absCase);
+  if (!loaded.ok) return loaded;
+  const { caseFile } = loaded;
+
+  // The verdict is checked after the run: it may rely on rulings the judge has yet to write.
+  const before = integrityErrors(withoutVerdict(caseFile));
+  if (before !== undefined) return { ok: false, reason: `integrity check failed: ${before}` };
 
   const configResult = await loadTestCmd(absRepo);
   if (!configResult.ok) return configResult;
-  const testCmd = configResult.testCmd;
 
-  const unruled = collectUnruled(caseFile);
+  const evidence = collectEvidence(caseFile);
+  const rulings = await runAll(evidence, absRepo, configResult.testCmd);
+  const updated = applyRulings(caseFile, rulings);
 
-  if (unruled.length === 0) {
-    return revalidate(json);
+  const after = integrityErrors(updated);
+  if (after !== undefined) return { ok: false, reason: `integrity check failed: ${after}` };
+
+  if (options.write) {
+    await writeFile(absCase, `${JSON.stringify(updated, null, 2)}\n`, "utf8");
   }
-
-  const newRulings = await runAll(unruled, absRepo, testCmd);
-  const updated = insertRulings(caseFile, newRulings);
-  await writeFile(absCase, `${JSON.stringify(updated, null, 2)}\n`, "utf8");
-
-  const integrityResult = checkFinalIntegrity(updated);
-  if (!integrityResult.ok) return integrityResult;
-  return { ok: true, ruledCount: newRulings.length };
+  return { ok: true, ruledCount: rulings.size, changed: changedRulings(caseFile, rulings) };
 }
 
-// ---------------------------------------------------------------------------
-// Helpers extracted to keep runJudge below the complexity ceiling
-// ---------------------------------------------------------------------------
-
-type LoadResult =
-  | { ok: true; json: unknown; caseFile: CaseFileShape }
-  | { ok: false; reason: string };
+type LoadResult = { ok: true; caseFile: CaseFileShape } | { ok: false; reason: string };
 
 async function loadCaseFile(absCase: string): Promise<LoadResult> {
-  const raw = await readFile(absCase, "utf8");
   let json: unknown;
   try {
-    json = JSON.parse(raw);
-  } catch {
-    return { ok: false, reason: `${absCase} is not valid JSON` };
+    json = JSON.parse(await readFile(absCase, "utf8"));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { ok: false, reason: `could not read ${absCase}: ${message}` };
   }
+  // Shape only: a mid-trial file has no verdict yet, so integrity is checked separately.
   const shapeResult = caseFileShape.safeParse(json);
   if (!shapeResult.success) {
     return { ok: false, reason: `schema error: ${z.prettifyError(shapeResult.error)}` };
   }
-  return { ok: true, json, caseFile: shapeResult.data };
+  return { ok: true, caseFile: shapeResult.data };
 }
 
 type ConfigResult = { ok: true; testCmd: string[] } | { ok: false; reason: string };
@@ -80,73 +85,61 @@ async function loadTestCmd(absRepo: string): Promise<ConfigResult> {
   }
 }
 
-function collectUnruled(
-  caseFile: CaseFileShape,
-): Array<Extract<CaseEvent, { type: "claim" }>["evidence"][number]> {
-  const ruled = new Set<string>(
-    caseFile.events
-      .filter((e): e is Extract<CaseEvent, { type: "ruling" }> => e.type === "ruling")
-      .map((e) => e.evidenceId),
-  );
-  const unruled: Array<Extract<CaseEvent, { type: "claim" }>["evidence"][number]> = [];
-  for (const event of caseFile.events) {
-    if (event.type !== "claim") continue;
-    for (const item of event.evidence) {
-      if (!ruled.has(item.id)) unruled.push(item);
-    }
-  }
-  return unruled;
+const MISSING_VERDICT = "a trial must end with a verdict";
+
+/** Every integrity issue except the missing verdict, which is normal mid-trial. */
+function integrityErrors(caseFile: CaseFileShape): string | undefined {
+  const issues = checkIntegrity(caseFile).filter((issue) => issue.message !== MISSING_VERDICT);
+  if (issues.length === 0) return undefined;
+  return issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
+}
+
+function withoutVerdict(caseFile: CaseFileShape): CaseFileShape {
+  return { ...caseFile, events: caseFile.events.filter((event) => event.type !== "verdict") };
+}
+
+function collectEvidence(caseFile: CaseFileShape): Evidence[] {
+  return caseFile.events.flatMap((event) => (event.type === "claim" ? event.evidence : []));
 }
 
 async function runAll(
-  unruled: Array<Extract<CaseEvent, { type: "claim" }>["evidence"][number]>,
+  evidence: Evidence[],
   absRepo: string,
   testCmd: string[],
-): Promise<CaseEvent[]> {
-  const rulings: CaseEvent[] = [];
-  for (const evidence of unruled) {
-    const result = await ruleEvidence(evidence, absRepo, testCmd);
-    rulings.push({
+): Promise<Map<string, RulingEvent>> {
+  // One item at a time: parallel runs would share the repository's working tree.
+  const rulings = new Map<string, RulingEvent>();
+  for (const item of evidence) {
+    const result = await ruleEvidence(item, absRepo, testCmd);
+    // Truncated last: rules add prefixes to outputs that may already be at the limit.
+    rulings.set(item.id, {
       type: "ruling",
-      evidenceId: evidence.id,
-      status: result.status,
-      exitCode: result.exitCode,
-      excerpt: result.excerpt,
-      durationMs: result.durationMs,
+      evidenceId: item.id,
+      ...result,
+      excerpt: truncate(result.excerpt),
     });
   }
   return rulings;
 }
 
-function insertRulings(caseFile: CaseFileShape, newRulings: CaseEvent[]): CaseFileShape {
-  const events = [...caseFile.events];
-  const verdictIndex = events.findLastIndex((e) => e.type === "verdict");
-  if (verdictIndex === -1) {
-    events.push(...newRulings);
-  } else {
-    events.splice(verdictIndex, 0, ...newRulings);
-  }
+function applyRulings(caseFile: CaseFileShape, rulings: Map<string, RulingEvent>): CaseFileShape {
+  const recorded = new Set<string>();
+  const events = caseFile.events.map((event) => {
+    if (event.type !== "ruling") return event;
+    recorded.add(event.evidenceId);
+    return rulings.get(event.evidenceId) ?? event;
+  });
+  const fresh = [...rulings.values()].filter((ruling) => !recorded.has(ruling.evidenceId));
+  const verdictIndex = events.findLastIndex((event) => event.type === "verdict");
+  events.splice(verdictIndex === -1 ? events.length : verdictIndex, 0, ...fresh);
   return { ...caseFile, events };
 }
 
-function revalidate(json: unknown): RunResult {
-  const result = parseCaseFile(json);
-  if (!result.ok) {
-    // A mid-trial file without a verdict fails integrity — that is expected.
-    if (!result.error.includes("must end with a verdict")) {
-      return { ok: false, reason: result.error };
-    }
-  }
-  return { ok: true, ruledCount: 0 };
-}
-
-function checkFinalIntegrity(updated: CaseFileShape): RunResult {
-  const result = parseCaseFile(updated);
-  if (!result.ok) {
-    // "must end with a verdict" is expected for mid-trial files — not an error.
-    if (!result.error.includes("must end with a verdict")) {
-      return { ok: false, reason: `integrity check failed: ${result.error}` };
-    }
-  }
-  return { ok: true, ruledCount: 0 };
+/** Evidence ids whose recorded ruling disagrees with the judge's own run. */
+function changedRulings(caseFile: CaseFileShape, rulings: Map<string, RulingEvent>): string[] {
+  return caseFile.events.flatMap((event) =>
+    event.type === "ruling" && rulings.get(event.evidenceId)?.status !== event.status
+      ? [event.evidenceId]
+      : [],
+  );
 }

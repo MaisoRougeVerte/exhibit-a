@@ -12,6 +12,8 @@ describe("parseRoute", () => {
     ["#/trial", { page: "not-found" }],
     ["#/trial/a/b/c", { page: "not-found" }],
     ["#/elsewhere/x", { page: "not-found" }],
+    ["#/trial/%E0", { page: "not-found" }],
+    ["#/r/acme/shop/%", { page: "not-found" }],
   ])("parses %s", (hash, route) => {
     expect(parseRoute(hash)).toEqual(route);
   });

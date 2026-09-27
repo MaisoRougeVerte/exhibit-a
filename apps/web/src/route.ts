@@ -45,13 +45,19 @@ const parsers: Record<string, Parser> = {
   },
 };
 
+function decodeParts(parts: readonly string[]): string[] | undefined {
+  try {
+    return parts.map((part) => decodeURIComponent(part));
+  } catch {
+    return undefined;
+  }
+}
+
 /** Hash routes keep the site fully static, e.g. `#/trial/<id>` or `#/r/<owner>/<repo>/<file>`. */
 export function parseRoute(hash: string): Route {
-  const parts = hash
-    .replace(/^#\/?/, "")
-    .split("/")
-    .filter(Boolean)
-    .map((part) => decodeURIComponent(part));
+  const parts = decodeParts(hash.replace(/^#\/?/, "").split("/").filter(Boolean));
+  // A hand-typed hash like `%E0` is not valid percent-encoding and must not crash the app.
+  if (parts === undefined) return { page: "not-found" };
   const [page, ...rest] = parts;
   if (page === undefined) return { page: "home" };
   return parsers[page]?.(rest) ?? { page: "not-found" };

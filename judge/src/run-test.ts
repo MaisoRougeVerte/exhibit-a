@@ -151,17 +151,25 @@ type SpawnResult = { exitCode: number | null; combined: string };
 function spawnCollect(bin: string, args: readonly string[], cwd: string): Promise<SpawnResult> {
   return new Promise((resolve) => {
     const chunks: Buffer[] = [];
-    const child = spawn(bin, args, {
-      cwd,
-      stdio: ["ignore", "pipe", "pipe"],
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      killSignal: "SIGKILL",
-    });
+    // A process group of its own, so a timeout also kills the runner's workers: they hold
+    // the output pipes open and would keep "close" from ever firing.
+    const child = spawn(bin, args, { cwd, stdio: ["ignore", "pipe", "pipe"], detached: true });
+    const timeout = AbortSignal.timeout(TIMEOUT_MS);
+    const killGroup = () => {
+      if (child.pid === undefined) return;
+      try {
+        process.kill(-child.pid, "SIGKILL");
+      } catch {
+        // The group already exited.
+      }
+    };
+    timeout.addEventListener("abort", killGroup, { once: true });
     child.stdout.on("data", (chunk: Buffer) => chunks.push(chunk));
     child.stderr.on("data", (chunk: Buffer) => chunks.push(chunk));
-    // A missing binary or an abort emits "error"; without a listener Node would crash.
+    // A missing binary emits "error"; without a listener Node would crash.
     child.on("error", (error) => chunks.push(Buffer.from(`\n${error.message}\n`)));
     child.on("close", (code) => {
+      timeout.removeEventListener("abort", killGroup);
       resolve({ exitCode: code, combined: Buffer.concat(chunks).toString("utf8") });
     });
   });
@@ -171,7 +179,8 @@ function firstLines(text: string, count: number): string {
   return text.split("\n").slice(0, count).join("\n");
 }
 
-function truncate(text: string): string {
+/** Keeps an excerpt within the schema's limit. */
+export function truncate(text: string): string {
   if (text.length <= EXCERPT_MAX) return text;
   // The end of test output carries the summary, so keep the tail.
   return `…${text.slice(text.length - (EXCERPT_MAX - 1))}`;

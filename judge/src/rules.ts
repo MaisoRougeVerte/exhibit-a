@@ -116,8 +116,8 @@ async function ruleBisect(
     };
   }
 
-  const commits = await commitsBetween(repoDir, good, bad);
-  if (commits.length === 0) {
+  const [newest, ...older] = await commitsBetween(repoDir, good, bad);
+  if (newest === undefined) {
     return {
       status: "error",
       exitCode: null,
@@ -131,7 +131,7 @@ async function ruleBisect(
   if (goodOutcome.status !== "pass") {
     const excerpt = `precondition failed: good commit ${good} does not pass the test\n${goodOutcome.output}`;
     return {
-      status: "rejected",
+      status: goodOutcome.status === "error" ? "error" : "rejected",
       exitCode: goodOutcome.exitCode,
       excerpt,
       durationMs: Date.now() - start,
@@ -141,30 +141,30 @@ async function ruleBisect(
   if (badOutcome.status !== "fail") {
     const excerpt = `precondition failed: bad commit ${bad} does not fail the test\n${badOutcome.output}`;
     return {
-      status: "rejected",
+      status: badOutcome.status === "error" ? "error" : "rejected",
       exitCode: badOutcome.exitCode,
       excerpt,
       durationMs: Date.now() - start,
     };
   }
 
-  const culprit = await binarySearch(repoDir, testCmd, evidence, commits);
-
-  if (culprit === null) {
+  const search = await binarySearch(repoDir, testCmd, evidence, [newest, ...older]);
+  if (!search.ok) {
     return {
       status: "error",
       exitCode: null,
-      excerpt: "bisect did not converge to a single culprit commit",
+      excerpt: search.reason,
       durationMs: Date.now() - start,
     };
   }
+  const culprit = search.culprit;
 
   const durationMs = Date.now() - start;
   const shortCulprit = culprit.slice(0, 12);
   const expectedShort = evidence.expectCulprit;
   const excerpt = `bisect: first bad commit is ${shortCulprit} (expected ${expectedShort})`;
 
-  if (culprit.startsWith(expectedShort) || expectedShort.startsWith(culprit.slice(0, 7))) {
+  if (culprit.startsWith(expectedShort)) {
     return { status: "upheld", exitCode: 0, excerpt, durationMs };
   }
   return { status: "rejected", exitCode: 1, excerpt, durationMs };
@@ -176,12 +176,17 @@ async function ruleBisect(
 
 async function commitsBetween(repoDir: string, good: string, bad: string): Promise<string[]> {
   // git log --ancestry-path good..bad — newest first, bad included, good excluded.
-  const { stdout } = await execFileAsync(
-    "git",
-    ["-C", repoDir, "log", "--ancestry-path", "--format=%H", `${good}..${bad}`],
-    { signal: AbortSignal.timeout(10_000) },
-  );
-  return stdout.trim().split("\n").filter(Boolean);
+  // A failure (good is not an ancestor of bad, timeout) yields no commits, ruled an error.
+  try {
+    const { stdout } = await execFileAsync(
+      "git",
+      ["-C", repoDir, "log", "--ancestry-path", "--format=%H", `${good}..${bad}`],
+      { signal: AbortSignal.timeout(10_000) },
+    );
+    return stdout.trim().split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
 }
 
 async function resolveRevision(repoDir: string, rev: string): Promise<string | null> {
@@ -222,36 +227,43 @@ async function runTestAtRevision(
   }
 }
 
+type SearchResult = { ok: true; culprit: string } | { ok: false; reason: string };
+
 /**
  * Finds the oldest commit in `commits` (newest-first) where the test still fails.
- * commits[0] is "bad" (known to fail).
+ * commits[0] is "bad" (known to fail). A commit where the test cannot run stops the
+ * search: guessing its result could name the wrong culprit.
  */
 async function binarySearch(
   repoDir: string,
   testCmd: string[],
   evidence: Extract<Evidence, { kind: "bisect" }>,
-  commits: string[],
-): Promise<string | null> {
+  commits: [string, ...string[]],
+): Promise<SearchResult> {
   let lo = 0;
   let hi = commits.length - 1;
-  let culprit: string | null = commits[0] ?? null;
+  let culprit = commits[0];
 
   while (lo <= hi) {
     const mid = Math.floor((lo + hi) / 2);
     const sha = commits[mid];
     if (sha === undefined) break;
     const outcome = await runTestAtRevision(repoDir, testCmd, evidence, sha);
-    if (outcome.status === "fail") {
-      culprit = sha;
-      lo = mid + 1;
-    } else if (outcome.status === "pass") {
-      hi = mid - 1;
-    } else {
-      // Error at this commit — treat conservatively as pass.
-      hi = mid - 1;
+    switch (outcome.status) {
+      case "fail":
+        culprit = sha;
+        lo = mid + 1;
+        break;
+      case "pass":
+        hi = mid - 1;
+        break;
+      case "error":
+        return { ok: false, reason: `the test cannot run at ${sha}\n${outcome.output}` };
+      default:
+        return assertNever(outcome.status);
     }
   }
-  return culprit;
+  return { ok: true, culprit };
 }
 
 // ---------------------------------------------------------------------------

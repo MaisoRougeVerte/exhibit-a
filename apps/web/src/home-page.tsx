@@ -9,7 +9,45 @@ import { PixelFrame } from "./pixel-frame.tsx";
 import { accuseHref, docsHref, reportHref, trialHref } from "./route.ts";
 import type { Speaker } from "./scene.ts";
 import { scoreboard } from "./scoreboard.ts";
+import { type Study, StudyCard } from "./study-card.tsx";
 import { findTimeline, firstTimeline } from "./timelines.ts";
+
+const SO_2025 = "https://survey.stackoverflow.co/2025/ai";
+const METR_2025 = "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/";
+
+const studies: Study[] = [
+  {
+    value: "66%",
+    share: 0.66,
+    statement:
+      'of developers name "AI solutions that are almost right, but not quite" as their top frustration.',
+    source: "Stack Overflow Developer Survey 2025",
+    href: SO_2025,
+  },
+  {
+    value: "45%",
+    share: 0.45,
+    statement: "say debugging AI-generated code takes more time.",
+    source: "Stack Overflow Developer Survey 2025",
+    href: SO_2025,
+  },
+  {
+    value: "46%",
+    share: 0.46,
+    statement: "actively distrust the accuracy of AI tools. Only 3% highly trust it.",
+    source: "Stack Overflow Developer Survey 2025",
+    href: SO_2025,
+  },
+  {
+    value: "+19%",
+    share: 0.19,
+    statement:
+      "more time taken by experienced developers using AI in a randomized trial, while they believed it made them faster.",
+    source: "METR randomized controlled trial, 2025",
+    href: METR_2025,
+  },
+];
+
 import { type MenuItem, TitleMenu } from "./title-menu.tsx";
 
 const recorded = bundledCases.filter((caseFile) => caseFile.source === "bob-ide");
@@ -58,7 +96,14 @@ function RoleCard({ speaker, name, text }: (typeof roles)[number]) {
     <PixelFrame fill={NAVY_PANEL} className="flex-1">
       <div className="flex h-full flex-col items-center gap-3 px-5 pt-4 pb-6 text-center">
         {portrait !== undefined && (
-          <img src={portrait} alt="" className="h-48 object-contain object-bottom" />
+          <img
+            src={portrait}
+            alt=""
+            width={192}
+            height={192}
+            loading="eager"
+            className="size-48 object-contain object-bottom"
+          />
         )}
         <h3 className="font-display text-2xl tracking-wider text-amber-300">{name}</h3>
         <p className="text-white/85">{text}</p>
@@ -153,31 +198,29 @@ export function HomePage() {
         <PixelFade className="absolute inset-x-0 bottom-0" />
       </section>
 
-      <Section eyebrow="THE PROBLEM" title="AI answers are almost right">
-        <div className="grid gap-6 md:grid-cols-2">
-          <PixelFrame fill={NAVY_PANEL}>
-            <div className="p-6">
-              <p className="font-display text-7xl text-red-400">66%</p>
-              <p className="mt-2 text-lg">
-                of developers name "AI solutions that are almost right, but not quite" as their top
-                frustration.{" "}
-                <span className="text-white/60">Stack Overflow Developer Survey 2025</span>
-              </p>
-            </div>
-          </PixelFrame>
-          <PixelFrame fill={NAVY_PANEL}>
-            <div className="p-6">
-              <p className="font-display text-7xl text-red-400">
-                {score.withdrawn}/{score.claims}
-              </p>
-              <p className="mt-2 text-lg">
-                of IBM Bob's claims did not survive our court, across {score.trials} real trials,{" "}
-                {score.objections} objections and {score.evidence} re-run pieces of evidence.
-                Measured, not estimated.
-              </p>
-            </div>
-          </PixelFrame>
+      <Section eyebrow="THE PROBLEM" title="AI answers are almost right, and hard to check">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {studies.map((study) => (
+            <StudyCard key={study.statement} {...study} />
+          ))}
         </div>
+        <PixelFrame fill="linear-gradient(180deg, rgba(90,20,20,0.9), rgba(30,6,6,0.95))">
+          <div className="flex flex-wrap items-center gap-6 p-6">
+            <p className="font-display text-7xl leading-none text-red-300">
+              {score.withdrawn}/{score.claims}
+            </p>
+            <div className="flex min-w-64 flex-1 flex-col gap-2">
+              <p className="font-display text-xl tracking-[0.2em] text-red-200">
+                OUR OWN MEASUREMENT
+              </p>
+              <p className="text-lg text-white/90">
+                of IBM Bob's claims did not survive our court, across {score.trials} real trials,{" "}
+                {score.objections} objections and {score.evidence} re-run pieces of evidence. Every
+                one can be re-checked with <code className="text-amber-200">pnpm judge</code>.
+              </p>
+            </div>
+          </div>
+        </PixelFrame>
       </Section>
 
       <Section eyebrow="THE COURT" title="Three roles, one rule: no claim without evidence">

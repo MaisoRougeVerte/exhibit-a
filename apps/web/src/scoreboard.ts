@@ -1,6 +1,6 @@
 import type { CaseEvent, CaseFile } from "@exhibit-a/schema";
 
-export type Scoreboard = {
+type Scoreboard = {
   trials: number;
   claims: number;
   withdrawn: number;

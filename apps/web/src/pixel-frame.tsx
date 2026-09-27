@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 // Stepped corners, like a pixel-art UI panel, built from two 4px steps per corner.
 const STEP = "4px";
 const TWO = "8px";
-export const PIXEL_CORNERS = `polygon(0 ${TWO}, ${STEP} ${TWO}, ${STEP} ${STEP}, ${TWO} ${STEP}, ${TWO} 0, calc(100% - ${TWO}) 0, calc(100% - ${TWO}) ${STEP}, calc(100% - ${STEP}) ${STEP}, calc(100% - ${STEP}) ${TWO}, 100% ${TWO}, 100% calc(100% - ${TWO}), calc(100% - ${STEP}) calc(100% - ${TWO}), calc(100% - ${STEP}) calc(100% - ${STEP}), calc(100% - ${TWO}) calc(100% - ${STEP}), calc(100% - ${TWO}) 100%, ${TWO} 100%, ${TWO} calc(100% - ${STEP}), ${STEP} calc(100% - ${STEP}), ${STEP} calc(100% - ${TWO}), 0 calc(100% - ${TWO}))`;
+const PIXEL_CORNERS = `polygon(0 ${TWO}, ${STEP} ${TWO}, ${STEP} ${STEP}, ${TWO} ${STEP}, ${TWO} 0, calc(100% - ${TWO}) 0, calc(100% - ${TWO}) ${STEP}, calc(100% - ${STEP}) ${STEP}, calc(100% - ${STEP}) ${TWO}, 100% ${TWO}, 100% calc(100% - ${TWO}), calc(100% - ${STEP}) calc(100% - ${TWO}), calc(100% - ${STEP}) calc(100% - ${STEP}), calc(100% - ${TWO}) calc(100% - ${STEP}), calc(100% - ${TWO}) 100%, ${TWO} 100%, ${TWO} calc(100% - ${STEP}), ${STEP} calc(100% - ${STEP}), ${STEP} calc(100% - ${TWO}), 0 calc(100% - ${TWO}))`;
 
 type PixelFrameProps = {
   fill: string;

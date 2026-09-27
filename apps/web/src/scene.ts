@@ -10,14 +10,14 @@ export type Speaker = "investigator" | "prosecutor" | "judge" | "developer" | "n
 
 export type Effect = "none" | "objection" | "gavel";
 
-export type Scene = {
+type Scene = {
   speaker: Speaker;
   expression: Expression;
   line: string;
   effect: Effect;
 };
 
-export type RulingStatus = "upheld" | "rejected" | "error";
+type RulingStatus = "upheld" | "rejected" | "error";
 
 export type RecordEntry = {
   evidence: Evidence;

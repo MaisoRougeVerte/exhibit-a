@@ -21,7 +21,7 @@ const localArt = new Set(localArtFiles);
 export type Sprite = { url: string; fullFrame: boolean };
 
 /** Idle frame plus an optional mouth-open frame, for lip flap while a line is typed. */
-export type SpriteFrames = { idle: string; talk: string | undefined };
+type SpriteFrames = { idle: string; talk: string | undefined };
 
 /** Frames of shipped bust sprites for one expression, falling back to the neutral pose. */
 export function bustFrames(speaker: Speaker, expression: Expression): SpriteFrames | undefined {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 const CHARS_PER_TICK = 2;
 const TICK_MS = 30;
 
-export type Typewriter = {
+type Typewriter = {
   shown: string;
   done: boolean;
   finish: () => void;

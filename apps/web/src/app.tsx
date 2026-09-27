@@ -32,16 +32,21 @@ function NotFound() {
   );
 }
 
+/** Remounted on every route change, so a new page starts at the top, like a new screen in a game. */
+function ScrollToTop() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  return null;
+}
+
 export function App() {
   const route = useRoute();
   const routeKey = JSON.stringify(route);
-  // A new page starts at the top, like a new screen in a game.
-  useEffect(() => {
-    if (routeKey !== "") window.scrollTo(0, 0);
-  }, [routeKey]);
   return (
     <>
       <Page route={route} />
+      <ScrollToTop key={`scroll-${routeKey}`} />
       <PixelTransition key={routeKey} />
     </>
   );

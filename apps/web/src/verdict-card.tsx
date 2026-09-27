@@ -1,5 +1,5 @@
 import type { CaseFile, VerdictEvent } from "@exhibit-a/schema";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { CommitText } from "./commit-text.tsx";
 import { PixelFrame } from "./pixel-frame.tsx";
@@ -27,6 +27,7 @@ function commandsFor(caseFile: CaseFile, verdict: VerdictEvent): string[] {
 /** End of trial: what a developer needs to act, not a victory screen. */
 export function VerdictCard({ caseFile, verdict, canAccuse }: VerdictCardProps) {
   const [copied, setCopied] = useState<string | undefined>(undefined);
+  const reduceMotion = useReducedMotion() ?? false;
   const commands = commandsFor(caseFile, verdict);
 
   async function copy(command: string) {
@@ -36,7 +37,7 @@ export function VerdictCard({ caseFile, verdict, canAccuse }: VerdictCardProps) 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       className="absolute top-[12%] left-[3%] z-30 w-[46%] portrait:inset-x-[3%] portrait:w-auto"
     >

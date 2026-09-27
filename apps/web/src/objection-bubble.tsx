@@ -28,7 +28,8 @@ export function ObjectionBubble({ effect, eventIndex }: ObjectionBubbleProps) {
           />
         </motion.div>
       )}
-      {effect === "gavel" && (
+      {/* A transient badge; with reduced motion it would never fade, so it is skipped. */}
+      {effect === "gavel" && !reduceMotion && (
         <motion.div
           key={`gavel-${eventIndex}`}
           aria-hidden="true"

@@ -14,13 +14,15 @@ import { VerdictCard } from "./verdict-card.tsx";
 
 type TrialPageProps = {
   caseFile: CaseFile;
+  /** Event index to open on, for deep links. */
+  startAt?: number;
 };
 
 const hudButton =
   "rounded border border-white/60 bg-black/60 px-[1em] py-[0.3em] text-vn-hud text-white hover:bg-black/80";
 
-export function TrialPage({ caseFile }: TrialPageProps) {
-  const [index, setIndex] = useState(0);
+export function TrialPage({ caseFile, startAt = 0 }: TrialPageProps) {
+  const [index, setIndex] = useState(Math.min(Math.max(startAt, 0), caseFile.events.length - 1));
   const [recordOpen, setRecordOpen] = useState(false);
   const reduceMotion = useReducedMotion() ?? false;
   const lastIndex = caseFile.events.length - 1;

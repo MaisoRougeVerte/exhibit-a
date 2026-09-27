@@ -1,6 +1,6 @@
 export type Route =
   | { page: "home" }
-  | { page: "trial"; caseId: string }
+  | { page: "trial"; caseId: string; step: number }
   | { page: "report"; caseId: string }
   | { page: "accuse"; caseId: string }
   | { page: "dashboard" }
@@ -25,7 +25,13 @@ export function parseRoute(hash: string): Route {
   const [page, ...rest] = parts;
   if (page === undefined) return { page: "home" };
   if (rest.length === 0 && (page === "dashboard" || page === "try")) return { page };
-  if (isCasePage(page) && rest.length === 1 && rest[0] !== undefined) {
+  if (page === "trial" && rest[0] !== undefined && rest.length <= 2) {
+    // An optional step deep-links to one moment of the trial, 1-based like the on-screen counter.
+    const step = rest[1] === undefined ? 1 : Number(rest[1]);
+    if (!Number.isInteger(step) || step < 1) return { page: "not-found" };
+    return { page: "trial", caseId: rest[0], step };
+  }
+  if (isCasePage(page) && page !== "trial" && rest.length === 1 && rest[0] !== undefined) {
     return { page, caseId: rest[0] };
   }
   const [owner, repo, file] = rest;
@@ -35,8 +41,9 @@ export function parseRoute(hash: string): Route {
   return { page: "not-found" };
 }
 
-export function trialHref(caseId: string): string {
-  return `#/trial/${encodeURIComponent(caseId)}`;
+export function trialHref(caseId: string, step?: number): string {
+  const base = `#/trial/${encodeURIComponent(caseId)}`;
+  return step === undefined ? base : `${base}/${step}`;
 }
 
 export function reportHref(caseId: string): string {

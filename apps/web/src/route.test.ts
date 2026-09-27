@@ -5,17 +5,19 @@ describe("parseRoute", () => {
   it.each([
     ["", { page: "home" }],
     ["#/", { page: "home" }],
-    ["#/trial/framed-commit", { page: "trial", caseId: "framed-commit" }],
+    ["#/trial/framed-commit", { page: "trial", caseId: "framed-commit", step: 1 }],
+    ["#/trial/framed-commit/7", { page: "trial", caseId: "framed-commit", step: 7 }],
+    ["#/trial/framed-commit/zero", { page: "not-found" }],
     ["#/report/framed-commit", { page: "report", caseId: "framed-commit" }],
     ["#/trial", { page: "not-found" }],
-    ["#/trial/a/b", { page: "not-found" }],
+    ["#/trial/a/b/c", { page: "not-found" }],
     ["#/elsewhere/x", { page: "not-found" }],
   ])("parses %s", (hash, route) => {
     expect(parseRoute(hash)).toEqual(route);
   });
 
   it("round-trips the ids it builds", () => {
-    expect(parseRoute(trialHref("odd id"))).toEqual({ page: "trial", caseId: "odd id" });
+    expect(parseRoute(trialHref("odd id"))).toEqual({ page: "trial", caseId: "odd id", step: 1 });
   });
 });
 

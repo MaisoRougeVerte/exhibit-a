@@ -33,7 +33,11 @@ export function App() {
       return caseFile === undefined ? (
         <NotFound />
       ) : (
-        <TrialPage key={caseFile.id} caseFile={caseFile} />
+        <TrialPage
+          key={`${caseFile.id}/${route.step}`}
+          caseFile={caseFile}
+          startAt={route.step - 1}
+        />
       );
     }
     case "report": {

@@ -49,3 +49,6 @@ body {
 @utility text-vn-title {
   font-size: clamp(3rem, 9cqw, 8rem);
 }
+@utility text-vn-logo {
+  font-size: clamp(4rem, 12cqw, 11rem);
+}

@@ -52,7 +52,8 @@ export function TitleMenu({ items }: { items: readonly MenuItem[] }) {
           ))}
         </ul>
         {current !== undefined && (
-          <p className="border-t-2 border-dashed border-white/20 px-6 py-2 text-vn-small text-white/75">
+          // Two lines are always reserved so the panel keeps the same size whatever the option.
+          <p className="flex h-[3.4em] items-center justify-center border-t-2 border-dashed border-white/20 px-6 text-vn-small leading-snug text-white/75">
             {current.hint}
           </p>
         )}

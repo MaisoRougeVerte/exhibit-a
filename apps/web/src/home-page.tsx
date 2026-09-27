@@ -141,10 +141,10 @@ export function HomePage() {
             <p className="font-display text-vn-tag tracking-[0.3em] text-amber-300 [text-shadow:2px_0_0_#000,-2px_0_0_#000,0_2px_0_#000,0_-2px_0_#000]">
               DEBUGGING ON TRIAL
             </p>
-            <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-50 [text-shadow:3px_0_0_#0b1220,-3px_0_0_#0b1220,0_3px_0_#0b1220,0_-3px_0_#0b1220,3px_3px_0_#0b1220,-3px_3px_0_#0b1220,3px_-3px_0_#0b1220,-3px_-3px_0_#0b1220,0_8px_0_rgba(0,0,0,0.55)]">
+            <h1 className="font-display text-vn-logo leading-none tracking-wider text-amber-50 [text-shadow:3px_0_0_#0b1220,-3px_0_0_#0b1220,0_3px_0_#0b1220,0_-3px_0_#0b1220,3px_3px_0_#0b1220,-3px_3px_0_#0b1220,3px_-3px_0_#0b1220,-3px_-3px_0_#0b1220,0_8px_0_rgba(0,0,0,0.55)]">
               EXHIBIT A
             </h1>
-            <p className="bg-black/75 px-4 py-1 text-vn-lead font-extrabold text-white">
+            <p className="text-vn-lead font-extrabold text-white [text-shadow:2px_0_0_#0b1220,-2px_0_0_#0b1220,0_2px_0_#0b1220,0_-2px_0_#0b1220,0_4px_0_rgba(0,0,0,0.6)]">
               Your AI says it found the bug. Make it prove it.
             </p>
           </div>

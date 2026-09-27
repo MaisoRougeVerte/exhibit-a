@@ -76,7 +76,12 @@
       }
     },
     {
-      "includes": ["judge/src/cli.ts", "scripts/**", "judge/src/timeline-cli.ts"],
+      "includes": [
+        "judge/src/cli.ts",
+        "scripts/**",
+        "judge/src/timeline-cli.ts",
+        "judge/src/docs-cli.ts"
+      ],
       "linter": {
         "rules": {
           "suspicious": {

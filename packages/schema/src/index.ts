@@ -33,5 +33,7 @@ export function parseCaseFile(input: unknown): ParseResult {
     ? { ok: true, value: result.data }
     : { ok: false, error: z.prettifyError(result.error) };
 }
+export type { DocsFinding, DocsReport } from "./docs-report.ts";
+export { docsReportSchema } from "./docs-report.ts";
 export type { Timeline, TimelineCommit } from "./timeline.ts";
 export { timelineSchema } from "./timeline.ts";

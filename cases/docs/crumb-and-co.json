@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "repo": "crumb-and-co",
+  "head": "565e55a",
+  "generatedAt": "2026-09-27T09:50:00.927Z",
+  "findings": [
+    {
+      "doc": "README.md",
+      "line": 15,
+      "quote": "docs/bug-reports/",
+      "kind": "file",
+      "status": "holds",
+      "detail": "file exists"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 7,
+      "quote": "createBakery(options)",
+      "kind": "symbol",
+      "status": "holds",
+      "detail": "\"createBakery\" appears in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 7,
+      "quote": "placeOrder",
+      "kind": "symbol",
+      "status": "holds",
+      "detail": "\"placeOrder\" appears in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 7,
+      "quote": "stockOf",
+      "kind": "symbol",
+      "status": "holds",
+      "detail": "\"stockOf\" appears in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 8,
+      "quote": "src/stock.ts",
+      "kind": "file",
+      "status": "broken",
+      "detail": "no such file in the repository"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 8,
+      "quote": "reserveStock",
+      "kind": "symbol",
+      "status": "broken",
+      "detail": "\"reserveStock\" appears nowhere in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 9,
+      "quote": "cancelOrder(id)",
+      "kind": "symbol",
+      "status": "broken",
+      "detail": "\"cancelOrder\" appears nowhere in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 9,
+      "quote": "src/refunds.ts",
+      "kind": "file",
+      "status": "broken",
+      "detail": "no such file in the repository"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 13,
+      "quote": "priceCart(lines, promoCode)",
+      "kind": "symbol",
+      "status": "holds",
+      "detail": "\"priceCart\" appears in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 14,
+      "quote": "BIENVENUE10",
+      "kind": "symbol",
+      "status": "holds",
+      "detail": "\"BIENVENUE10\" appears in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 14,
+      "quote": "FIDELITE20",
+      "kind": "symbol",
+      "status": "broken",
+      "detail": "\"FIDELITE20\" appears nowhere in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 18,
+      "quote": "dailySales(orders)",
+      "kind": "symbol",
+      "status": "holds",
+      "detail": "\"dailySales\" appears in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 18,
+      "quote": "jsonLinesLogger",
+      "kind": "symbol",
+      "status": "holds",
+      "detail": "\"jsonLinesLogger\" appears in src/"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 22,
+      "quote": "pnpm install",
+      "kind": "script",
+      "status": "holds",
+      "detail": "package.json defines \"install\""
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 22,
+      "quote": "pnpm test",
+      "kind": "script",
+      "status": "holds",
+      "detail": "package.json defines \"test\""
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 22,
+      "quote": "pnpm typecheck",
+      "kind": "script",
+      "status": "holds",
+      "detail": "package.json defines \"typecheck\""
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 22,
+      "quote": "pnpm lint",
+      "kind": "script",
+      "status": "broken",
+      "detail": "package.json has no \"lint\" script"
+    },
+    {
+      "doc": "docs/API.md",
+      "line": 23,
+      "quote": "src/catalog.ts",
+      "kind": "file",
+      "status": "holds",
+      "detail": "file exists"
+    }
+  ]
+}

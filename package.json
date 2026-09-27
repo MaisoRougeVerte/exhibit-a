@@ -16,7 +16,8 @@
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "prepare": "lefthook install",
     "judge": "node judge/src/cli.ts",
-    "timeline": "node judge/src/timeline-cli.ts"
+    "timeline": "node judge/src/timeline-cli.ts",
+    "docs-check": "node judge/src/docs-cli.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",

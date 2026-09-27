@@ -6,6 +6,8 @@
 
 [Live demo](https://exhibit-a-alpha.vercel.app) · [Watch the framed-commit trial](https://exhibit-a-alpha.vercel.app/#/trial/framed-commit) · [Accuse a commit](https://exhibit-a-alpha.vercel.app/#/accuse/framed-commit) · [Bob sessions](bob_sessions/)
 
+[Presentation](https://exhibit-a-alpha.vercel.app/presentation/) · [Slides (PDF)](https://exhibit-a-alpha.vercel.app/presentation/exhibit-a-slides.pdf) · [Verdict report](https://exhibit-a-alpha.vercel.app/#/report/framed-commit)
+
 Exhibit A puts a bug on trial. IBM Bob investigates with parallel subagents and must back every
 claim with executable evidence. An independent prosecutor subagent attacks each claim. A
 deterministic judge, plain code with no LLM, re-runs every piece of evidence. Only claims that
@@ -133,11 +135,13 @@ Bob is the engine of the product, not only a coding assistant:
   subagents and a `general` prosecutor subagent.
 - **The GitHub Action:** runs the same mode headless with Bob Shell.
 
-Session summaries are in [`bob_sessions/`](bob_sessions/).
+Session summary screenshots belong in [`bob_sessions/`](bob_sessions/). Their upload is
+still pending; the recorded trials and Bob configuration are already included.
 
 ## Other tools, honestly
 
 The tooling, the demo repository, the web site and the reviews were written with Claude Code.
+Codex also helped refine the web UI, character expressions and deployment for the presentation.
 Character art and backgrounds were generated with OpenAI image generation through Codex; the
 characters are original. Fonts: Jersey 10 and M PLUS Rounded 1c, all under the SIL Open
 Font License.

@@ -91,7 +91,7 @@ export function toScene(event: CaseEvent, caseFile: CaseFile): Scene {
     case "ruling":
       return rulingScene(event, evidenceIndex(caseFile));
     case "verdict":
-      return { speaker: "judge", expression: "neutral", line: event.line, effect: "gavel" };
+      return { speaker: "judge", expression: "confident", line: event.line, effect: "gavel" };
     default:
       return assertNever(event);
   }

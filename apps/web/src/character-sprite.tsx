@@ -2,6 +2,7 @@ import type { Expression } from "@exhibit-a/schema";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { bustFrames, spriteFor } from "./art.ts";
+import { InvestigatorSprite } from "./investigator-sprite.tsx";
 import type { Speaker } from "./scene.ts";
 import { speakerStyles } from "./speakers.ts";
 
@@ -29,7 +30,7 @@ export function CharacterSprite({ speaker, expression, talking }: CharacterSprit
   const style = speakerStyles[speaker];
   const sprite = spriteFor(speaker, expression, talking);
   const frames = bustFrames(speaker, expression);
-  const mouthOpen = useFlap(talking && frames?.talk !== undefined);
+  const mouthOpen = useFlap(talking && !reduceMotion && frames?.talk !== undefined);
   if (sprite?.fullFrame === true) {
     return (
       <img
@@ -71,6 +72,13 @@ export function CharacterSprite({ speaker, expression, talking }: CharacterSprit
             {style.initial}
           </text>
         </svg>
+      ) : speaker === "investigator" && frames !== undefined ? (
+        <InvestigatorSprite
+          idle={frames.idle}
+          talk={frames.talk}
+          mouthOpen={mouthOpen}
+          alt={`${style.name}, ${expression}`}
+        />
       ) : (
         <img
           src={mouthOpen && frames?.talk !== undefined ? frames.talk : (frames?.idle ?? sprite.url)}

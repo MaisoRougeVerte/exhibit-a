@@ -1,5 +1,7 @@
 import { localArtFiles } from "virtual:local-art";
 import type { Expression } from "@exhibit-a/schema";
+import investigatorRedrawn from "./assets/characters/investigator/redrawn-idle.png";
+import judgeCorrected from "./assets/characters/judge/angry-corrected.png";
 import type { Position } from "./positions.ts";
 import type { Speaker } from "./scene.ts";
 
@@ -25,9 +27,19 @@ type SpriteFrames = { idle: string; talk: string | undefined };
 
 /** Frames of shipped bust sprites for one expression, falling back to the neutral pose. */
 export function bustFrames(speaker: Speaker, expression: Expression): SpriteFrames | undefined {
-  const url = (name: string) =>
-    shippedSprites[`./assets/characters/${speaker}/${name}.webp`] ??
-    shippedSprites[`./assets/characters/${speaker}/${name}.png`];
+  if (speaker === "judge" && expression === "angry")
+    return { idle: judgeCorrected, talk: undefined };
+  const url = (name: string) => {
+    // Keep each pose and its speaking frame in the corrected character set.
+    if (speaker === "investigator")
+      return name === "neutral-idle"
+        ? investigatorRedrawn
+        : shippedSprites[`./assets/characters/investigator/corrected-${name}.png`];
+    return (
+      shippedSprites[`./assets/characters/${speaker}/${name}.webp`] ??
+      shippedSprites[`./assets/characters/${speaker}/${name}.png`]
+    );
+  };
   const idle = url(`${expression}-idle`);
   if (idle !== undefined) return { idle, talk: url(`${expression}-talk`) };
   const neutral = url("neutral-idle");
@@ -48,15 +60,11 @@ export function spriteFor(
   expression: Expression,
   talking: boolean,
 ): Sprite | undefined {
+  const frames = bustFrames(speaker, expression);
+  if (frames !== undefined)
+    return { url: talking ? (frames.talk ?? frames.idle) : frames.idle, fullFrame: false };
   const variants = talking ? ["talk", "idle"] : ["idle"];
   const names = [...variants.map((v) => `${expression}-${v}`), "neutral-idle"];
-  const shipped = pick(
-    shippedSprites,
-    names.flatMap((n) =>
-      ["webp", "png"].map((ext) => `./assets/characters/${speaker}/${n}.${ext}`),
-    ),
-  );
-  if (shipped !== undefined) return { url: shipped, fullFrame: false };
   const local = names
     .map((n) => `characters/${speaker}/${n}.gif`)
     .find((path) => localArt.has(path));

@@ -20,6 +20,12 @@ function sceneAt(index: number) {
 }
 
 describe("toScene", () => {
+  it("uses an assured judge pose for the final verdict", () => {
+    const event = sample.events.find((candidate) => candidate.type === "verdict");
+    if (event === undefined) throw new Error("missing fixture verdict");
+    expect(toScene(event, sample)).toMatchObject({ speaker: "judge", expression: "confident" });
+  });
+
   it("opens on the real bug report", () => {
     expect(sceneAt(0)).toMatchObject({ speaker: "narrator", effect: "none" });
     expect(sceneAt(0).line).toContain("Bug report: Stock went negative on the last baguette");

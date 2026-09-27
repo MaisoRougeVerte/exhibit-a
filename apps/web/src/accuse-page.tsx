@@ -76,7 +76,7 @@ function CommitRow({
         onMouseEnter={onHover}
         onClick={onAccuse}
         aria-pressed={accused}
-        className={`flex w-full items-stretch gap-3 rounded-sm py-[0.3em] pr-2 pl-1 text-left [&>span]:self-center [&>span:nth-child(2)]:self-stretch ${selected ? "bg-[#3b2412]/15" : ""} ${accused ? "outline-2 outline-[#8b1d1d] outline-dashed" : ""}`}
+        className={`flex w-full items-stretch gap-3 rounded-sm py-[0.3em] pr-2 pl-1 text-left [&>span]:self-center [&>span:nth-child(2)]:self-stretch ${selected ? "bg-[#3b2412]/15" : ""} ${accused ? "outline-2 -outline-offset-2 outline-[#8b1d1d] outline-dashed" : ""}`}
       >
         <span aria-hidden="true" className="w-3 text-[#8b1d1d]">
           {selected ? "▶" : ""}

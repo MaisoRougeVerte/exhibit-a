@@ -14,7 +14,7 @@ import { findTimeline, firstTimeline } from "./timelines.ts";
 const recorded = bundledCases.filter((caseFile) => caseFile.source === "bob-ide");
 
 const menuButton =
-  "rounded-sm border-2 border-white/60 bg-black/70 px-[3em] py-[0.35em] text-center hover:bg-white/15";
+  "rounded-sm border-2 border-white/70 bg-black/85 px-[3em] py-[0.35em] text-center hover:bg-white/15";
 
 function Section({
   eyebrow,
@@ -107,17 +107,24 @@ export function HomePage() {
     <main className="bg-[#060a18] text-white">
       <section className="@container relative min-h-dvh overflow-hidden">
         <CourtroomBackdrop position="defense" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/50 to-black/75" />
         <div className="relative flex min-h-dvh flex-col items-center justify-center gap-[2cqw] px-[6%] pb-28 text-center">
-          <p className="font-display text-vn-tag tracking-[0.6em] text-amber-300">
-            DEBUGGING ON TRIAL
-          </p>
-          <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-100 [text-shadow:0_6px_0_rgba(0,0,0,0.7)]">
-            EXHIBIT A
-          </h1>
-          <p className="max-w-[70%] text-vn-lead font-extrabold [text-shadow:0_2px_0_rgba(0,0,0,0.9)] portrait:max-w-[92%]">
-            Your AI says it found the bug. Make it prove it.
-          </p>
+          <PixelFrame
+            fill="linear-gradient(180deg, rgba(10,16,38,0.88), rgba(4,7,18,0.92))"
+            className="max-w-[92%]"
+          >
+            <div className="flex flex-col items-center gap-[1cqw] px-[4cqw] py-[2.2cqw]">
+              <p className="font-display text-vn-tag tracking-[0.5em] text-amber-300">
+                DEBUGGING ON TRIAL
+              </p>
+              <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-100 [text-shadow:0_5px_0_#000]">
+                EXHIBIT A
+              </h1>
+              <p className="text-vn-lead font-extrabold text-white">
+                Your AI says it found the bug. Make it prove it.
+              </p>
+            </div>
+          </PixelFrame>
           <nav className="mt-[1cqw] flex flex-col items-stretch gap-[0.9cqw] text-vn-menu portrait:gap-3">
             {firstCase !== undefined && (
               <a
@@ -142,7 +149,9 @@ export function HomePage() {
               Open the dashboard
             </a>
           </nav>
-          <p className="text-vn-small text-white/60">Scroll to learn more ↓</p>
+          <p className="rounded-sm bg-black/60 px-3 py-1 text-vn-small text-white/80">
+            Scroll to learn more ↓
+          </p>
         </div>
         <PixelFade className="absolute inset-x-0 bottom-0" />
       </section>

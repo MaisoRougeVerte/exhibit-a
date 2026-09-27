@@ -56,6 +56,7 @@ export function TrialPage({ caseFile, startAt = 0, remote = false }: TrialPagePr
   const record = courtRecord(caseFile, index);
   const position = positionOf[scene.speaker];
   const finished = index >= lastIndex && typing.done;
+  const showingVerdict = finished && event.type === "verdict";
 
   const advance = useCallback(() => {
     if (!typing.done) {
@@ -93,10 +94,10 @@ export function TrialPage({ caseFile, startAt = 0, remote = false }: TrialPagePr
   const shake = scene.effect === "objection" && !reduceMotion;
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-black">
+    <main className="h-dvh w-full">
       <section
         aria-label={`Trial: ${caseFile.title}`}
-        className="@container relative aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden portrait:aspect-auto portrait:h-dvh portrait:max-w-none bg-stone-900 text-white select-none"
+        className="@container relative h-full w-full overflow-hidden bg-stone-900 text-white select-none"
       >
         <motion.div
           key={`camera-${index}`}
@@ -106,11 +107,19 @@ export function TrialPage({ caseFile, startAt = 0, remote = false }: TrialPagePr
         >
           <CourtroomBackdrop position={position} />
           {scene.speaker !== "narrator" && (
-            <CharacterSprite
-              speaker={scene.speaker}
-              expression={scene.expression}
-              talking={!typing.done}
-            />
+            <div
+              className={
+                showingVerdict
+                  ? "absolute inset-0 translate-x-[30%] portrait:hidden [&>div]:bottom-[5%] [&>div]:h-[78%]"
+                  : "absolute inset-0"
+              }
+            >
+              <CharacterSprite
+                speaker={scene.speaker}
+                expression={scene.expression}
+                talking={!typing.done}
+              />
+            </div>
           )}
           <CourtroomDesk position={position} />
         </motion.div>
@@ -133,10 +142,12 @@ export function TrialPage({ caseFile, startAt = 0, remote = false }: TrialPagePr
           type="button"
           onClick={advance}
           aria-label="Next line"
+          disabled={showingVerdict}
+          hidden={showingVerdict}
           className="absolute inset-0 z-10 cursor-pointer"
         />
 
-        <div className="pointer-events-none absolute inset-0 z-10">
+        <div hidden={showingVerdict} className="pointer-events-none absolute inset-0 z-10">
           <TextBox
             speaker={scene.speaker}
             text={typing.shown}

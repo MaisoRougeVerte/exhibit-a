@@ -6,8 +6,8 @@ const ways = [
     status: "Available",
     title: "Set up your repository",
     text: "From an Exhibit A checkout, run pnpm init-repo --repo ../your-repo. It detects your test runner and adds the Bob Tribunal mode, the GitHub workflow, and EXHIBIT-A.md: instructions any AI agent can follow so its answer is a trial the judge can check.",
-    href: "https://github.com/MaisoRougeVerte/exhibit-a#set-up-any-repository-in-one-command",
-    cta: "Read the setup",
+    href: "#/setup",
+    cta: "Set it up",
   },
   {
     status: "Available",

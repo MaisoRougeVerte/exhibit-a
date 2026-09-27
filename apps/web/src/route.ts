@@ -6,6 +6,7 @@ export type Route =
   | { page: "dashboard" }
   | { page: "remote-trial"; owner: string; repo: string; file: string }
   | { page: "try" }
+  | { page: "setup" }
   | { page: "docs"; repo: string }
   | { page: "not-found" };
 
@@ -16,6 +17,7 @@ const one = (rest: readonly string[]) => (rest.length === 1 ? rest[0] : undefine
 const parsers: Record<string, Parser> = {
   dashboard: (rest) => (rest.length === 0 ? { page: "dashboard" } : undefined),
   try: (rest) => (rest.length === 0 ? { page: "try" } : undefined),
+  setup: (rest) => (rest.length === 0 ? { page: "setup" } : undefined),
   report: (rest) => {
     const caseId = one(rest);
     return caseId === undefined ? undefined : { page: "report", caseId };

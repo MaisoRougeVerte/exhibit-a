@@ -76,7 +76,7 @@ function CommitRow({
         onMouseEnter={onHover}
         onClick={onAccuse}
         aria-pressed={accused}
-        className={`flex w-full items-center gap-3 rounded-sm py-[0.3em] pr-2 pl-1 text-left ${selected ? "bg-[#3b2412]/15" : ""} ${accused ? "outline-2 outline-[#8b1d1d] outline-dashed" : ""}`}
+        className={`flex w-full items-stretch gap-3 rounded-sm py-[0.3em] pr-2 pl-1 text-left [&>span]:self-center [&>span:nth-child(2)]:self-stretch ${selected ? "bg-[#3b2412]/15" : ""} ${accused ? "outline-2 outline-[#8b1d1d] outline-dashed" : ""}`}
       >
         <span aria-hidden="true" className="w-3 text-[#8b1d1d]">
           {selected ? "▶" : ""}
@@ -84,8 +84,13 @@ function CommitRow({
         {/* Git-graph node on the history line; its color is the test result at this commit. */}
         <span
           aria-hidden="true"
-          className={`relative z-10 size-[0.85em] shrink-0 rounded-full border-2 border-[#2b1a0e] ${status === undefined ? "bg-[#f3e6c4]" : node[status]} ${culprit ? "scale-150 ring-2 ring-red-700" : ""}`}
-        />
+          className="relative flex w-[1.1em] shrink-0 self-stretch items-center justify-center"
+        >
+          <span className="absolute inset-y-[-0.3em] left-1/2 w-[3px] -translate-x-1/2 bg-[#2b1a0e]/50" />
+          <span
+            className={`relative size-[0.85em] rounded-full border-2 border-[#2b1a0e] ${status === undefined ? "bg-[#f3e6c4]" : node[status]} ${culprit ? "scale-150 ring-2 ring-red-700" : ""}`}
+          />
+        </span>
         <span className="font-mono text-[#8b1d1d]">{commit.sha}</span>
         <span className="min-w-0 flex-1 truncate text-[#2b1a0e]">{commit.subject}</span>
         {culprit && (
@@ -185,7 +190,7 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
           fill={PARCHMENT}
           frame="#2b1a0e"
           gap="#c9a86a"
-          className="absolute top-[14%] left-[2%] z-20 h-[54%] w-[46%] -rotate-1 shadow-2xl portrait:w-[96%]"
+          className="absolute top-[14%] left-[2%] z-20 h-[54%] w-[46%] shadow-2xl portrait:w-[96%]"
         >
           <div className="flex h-full flex-col px-[1.1em] py-[0.8em] text-vn-small text-[#2b1a0e]">
             <div className="mb-2 flex items-baseline justify-between gap-2 border-b-2 border-dashed border-[#2b1a0e]/40 pb-1">
@@ -209,11 +214,6 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
               </span>
             </p>
             <ol ref={listRef} className="relative min-h-0 flex-1 overflow-y-auto pr-1">
-              {/* The history line the commit nodes sit on. */}
-              <span
-                aria-hidden="true"
-                className="absolute top-2 bottom-2 left-[2.35em] w-[3px] bg-[#2b1a0e]/50"
-              />
               {newestFirst.map(({ commit, index }, row) => (
                 <CommitRow
                   key={commit.sha}

@@ -4,6 +4,7 @@ import { bundledCases } from "./cases.ts";
 import { CourtroomBackdrop } from "./courtroom-backdrop.tsx";
 import { docsReports } from "./docs-reports.ts";
 import { NAVY_PANEL, PARCHMENT } from "./page-shell.tsx";
+import { PixelFade } from "./pixel-fade.tsx";
 import { PixelFrame } from "./pixel-frame.tsx";
 import { accuseHref, docsHref, reportHref, trialHref } from "./route.ts";
 import type { Speaker } from "./scene.ts";
@@ -104,41 +105,46 @@ export function HomePage() {
 
   return (
     <main className="bg-[#060a18] text-white">
-      <section className="grid min-h-dvh place-items-center bg-black">
-        <div className="@container relative aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden portrait:aspect-auto portrait:h-dvh portrait:max-w-none">
-          <CourtroomBackdrop position="defense" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/85" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-[2cqw] px-[6%] text-center">
-            <p className="font-display text-vn-tag tracking-[0.6em] text-amber-300">
-              DEBUGGING ON TRIAL
-            </p>
-            <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-100 [text-shadow:0_6px_0_rgba(0,0,0,0.7)]">
-              EXHIBIT A
-            </h1>
-            <p className="max-w-[70%] text-vn-lead font-extrabold [text-shadow:0_2px_0_rgba(0,0,0,0.9)] portrait:max-w-[92%]">
-              Your AI says it found the bug. Make it prove it.
-            </p>
-            <nav className="mt-[1cqw] flex flex-col items-stretch gap-[0.9cqw] text-vn-menu portrait:gap-3">
-              {firstCase !== undefined && (
-                <a
-                  href={trialHref(firstCase.id)}
-                  className={`${menuButton} border-amber-300 font-extrabold`}
-                >
-                  Watch a trial
-                </a>
-              )}
-              {timeline !== undefined && (
-                <a href={accuseHref(timeline.caseId)} className={menuButton}>
-                  Accuse a commit yourself
-                </a>
-              )}
-              <a href="#/dashboard" className={menuButton}>
-                Open the dashboard
+      <section className="@container relative min-h-dvh overflow-hidden">
+        <CourtroomBackdrop position="defense" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/70" />
+        <div className="relative flex min-h-dvh flex-col items-center justify-center gap-[2cqw] px-[6%] pb-28 text-center">
+          <p className="font-display text-vn-tag tracking-[0.6em] text-amber-300">
+            DEBUGGING ON TRIAL
+          </p>
+          <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-100 [text-shadow:0_6px_0_rgba(0,0,0,0.7)]">
+            EXHIBIT A
+          </h1>
+          <p className="max-w-[70%] text-vn-lead font-extrabold [text-shadow:0_2px_0_rgba(0,0,0,0.9)] portrait:max-w-[92%]">
+            Your AI says it found the bug. Make it prove it.
+          </p>
+          <nav className="mt-[1cqw] flex flex-col items-stretch gap-[0.9cqw] text-vn-menu portrait:gap-3">
+            {firstCase !== undefined && (
+              <a
+                href={trialHref(firstCase.id)}
+                className={`${menuButton} border-amber-300 font-extrabold`}
+              >
+                Watch a trial
               </a>
-            </nav>
-            <p className="text-vn-small text-white/60">Scroll to learn more ↓</p>
-          </div>
+            )}
+            <a
+              href="#/setup"
+              className={`${menuButton} border-emerald-300 font-extrabold text-emerald-100`}
+            >
+              Set it up on your project
+            </a>
+            {timeline !== undefined && (
+              <a href={accuseHref(timeline.caseId)} className={menuButton}>
+                Accuse a commit yourself
+              </a>
+            )}
+            <a href="#/dashboard" className={menuButton}>
+              Open the dashboard
+            </a>
+          </nav>
+          <p className="text-vn-small text-white/60">Scroll to learn more ↓</p>
         </div>
+        <PixelFade className="absolute inset-x-0 bottom-0" />
       </section>
 
       <Section eyebrow="THE PROBLEM" title="AI answers are almost right">
@@ -211,7 +217,7 @@ export function HomePage() {
           <FeatureCard
             title="GitHub Action"
             text="Label an issue on-trial: Bob Shell runs the Tribunal mode in your CI, the judge re-runs the evidence, the verdict lands on the issue."
-            href="#/try"
+            href="#/setup"
             cta="Set it up"
           />
           <FeatureCard

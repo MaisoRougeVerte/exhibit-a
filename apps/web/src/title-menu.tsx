@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PixelFrame } from "./pixel-frame.tsx";
 
 export type MenuItem = { label: string; href: string; hint: string };
@@ -8,6 +8,12 @@ export type MenuItem = { label: string; href: string; hint: string };
 export function TitleMenu({ items }: { items: readonly MenuItem[] }) {
   const [selected, setSelected] = useState(0);
   const reduceMotion = useReducedMotion() ?? false;
+  const links = useRef<(HTMLAnchorElement | null)[]>([]);
+
+  // Keyboard focus follows the cursor, so arrows and Enter work without clicking the page first.
+  useEffect(() => {
+    links.current[selected]?.focus({ preventScroll: true });
+  }, [selected]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -36,6 +42,9 @@ export function TitleMenu({ items }: { items: readonly MenuItem[] }) {
           {items.map((item, index) => (
             <li key={item.href} className="block">
               <a
+                ref={(element) => {
+                  links.current[index] = element;
+                }}
                 href={item.href}
                 onPointerMove={() => {
                   if (index !== selected) setSelected(index);

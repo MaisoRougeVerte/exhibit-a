@@ -22,15 +22,15 @@ export function TextBox({ speaker, text, done }: TextBoxProps) {
       {!narrating && (
         <PixelFrame
           fill={`linear-gradient(180deg, ${style.nameplate} 0%, #0d1838 100%)`}
-          className="absolute -top-[1.45em] left-[2%] z-10 text-vn-name"
+          className="absolute bottom-[calc(100%-3px)] left-0 z-10 text-vn-name"
         >
-          <p className="px-[1.1em] py-[0.1em] font-display leading-tight tracking-wider text-white">
+          <p className="px-[2.2cqw] py-[0.1em] font-display leading-tight tracking-wider text-white">
             {style.name}
           </p>
         </PixelFrame>
       )}
       <PixelFrame fill={PANEL} className="h-full">
-        <div className="px-[3%] pt-[2.2%] pb-[2%]">
+        <div className="px-[2.2cqw] pt-[1.6cqw] pb-[1.4cqw]">
           <p
             aria-live="polite"
             className={`text-vn-body font-medium leading-snug [text-shadow:0_2px_0_rgba(0,0,0,0.9)] ${narrating ? "text-sky-100" : "text-white"}`}

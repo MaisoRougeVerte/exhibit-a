@@ -30,7 +30,7 @@ export function HomePage() {
             <p className="font-display text-vn-tag tracking-[0.6em] text-amber-300">
               DEBUGGING ON TRIAL
             </p>
-            <h1 className="font-display text-vn-title leading-none font-black tracking-wide [text-shadow:0_6px_0_rgba(0,0,0,0.7)]">
+            <h1 className="font-display text-vn-title leading-none tracking-wider text-amber-100 [text-shadow:0_6px_0_rgba(0,0,0,0.7)]">
               EXHIBIT A
             </h1>
             <p className="max-w-[70%] text-vn-lead font-extrabold portrait:max-w-[92%] [text-shadow:0_2px_0_rgba(0,0,0,0.9)]">

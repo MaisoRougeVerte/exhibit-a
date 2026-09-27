@@ -65,7 +65,7 @@ export function CharacterSprite({ speaker, expression, talking }: CharacterSprit
             y="175"
             textAnchor="middle"
             fontSize="92"
-            fontFamily="Cinzel Variable, serif"
+            fontFamily="Jersey 10, sans-serif"
             fill="rgba(255,255,255,0.85)"
           >
             {style.initial}

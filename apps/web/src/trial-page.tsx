@@ -6,11 +6,11 @@ import { CourtRecordOverlay } from "./court-record-overlay.tsx";
 import { CourtroomBackdrop, CourtroomDesk } from "./courtroom-backdrop.tsx";
 import { ObjectionBubble } from "./objection-bubble.tsx";
 import { positionOf } from "./positions.ts";
-import { accuseHref, reportHref } from "./route.ts";
 import { courtRecord, toScene } from "./scene.ts";
 import { TextBox } from "./text-box.tsx";
 import { findTimeline } from "./timelines.ts";
 import { useTypewriter } from "./use-typewriter.ts";
+import { VerdictCard } from "./verdict-card.tsx";
 
 type TrialPageProps = {
   caseFile: CaseFile;
@@ -137,29 +137,12 @@ export function TrialPage({ caseFile }: TrialPageProps) {
           </div>
         </header>
 
-        {finished && (
-          <motion.nav
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute top-[16%] left-[4%] z-30 flex flex-col items-start gap-[1.2em] portrait:inset-x-0 portrait:items-center"
-          >
-            <p className="rotate-[-4deg] border-4 border-red-600 px-[0.6em] font-display text-vn-stamp font-black tracking-widest text-red-600 [text-shadow:0_3px_0_rgba(0,0,0,0.8)]">
-              GUILTY
-            </p>
-            <div className="flex gap-[1em] text-vn-menu portrait:flex-col">
-              <a
-                href={reportHref(caseFile.id)}
-                className="rounded bg-amber-500 px-[1.2em] py-[0.5em] font-extrabold text-stone-950"
-              >
-                Verdict report
-              </a>
-              {findTimeline(caseFile.id) !== undefined && (
-                <a href={accuseHref(caseFile.id)} className={hudButton}>
-                  Accuse a commit yourself
-                </a>
-              )}
-            </div>
-          </motion.nav>
+        {finished && event.type === "verdict" && (
+          <VerdictCard
+            caseFile={caseFile}
+            verdict={event}
+            canAccuse={findTimeline(caseFile.id) !== undefined}
+          />
         )}
 
         <CourtRecordOverlay

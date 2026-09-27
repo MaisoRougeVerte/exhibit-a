@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@exhibit-a/schema": "workspace:*",
-    "@fontsource-variable/cinzel": "5.3.0",
     "@fontsource/bangers": "5.3.0",
+    "@fontsource/jersey-10": "5.3.0",
     "@fontsource/m-plus-rounded-1c": "5.3.0",
     "motion": "^13.4.3",
     "react": "^19.3.0",

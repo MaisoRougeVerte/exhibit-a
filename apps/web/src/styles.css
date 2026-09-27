@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Cinzel Variable", serif;
+  --font-display: "Jersey 10", ui-sans-serif, sans-serif;
   --font-sans: "M PLUS Rounded 1c", ui-sans-serif, sans-serif;
   --font-comic: "Bangers", "Impact", sans-serif;
   --color-wood-950: #1c1109;

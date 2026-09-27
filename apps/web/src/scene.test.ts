@@ -20,18 +20,21 @@ function sceneAt(index: number) {
 }
 
 describe("toScene", () => {
-  it("gives the narrator the opening line", () => {
+  it("opens on the real bug report", () => {
     expect(sceneAt(0)).toMatchObject({ speaker: "narrator", effect: "none" });
+    expect(sceneAt(0).line).toContain("Bug report: Stock went negative on the last baguette");
   });
 
   it("plays the objection effect when the prosecutor objects", () => {
     expect(sceneAt(4)).toMatchObject({ speaker: "prosecutor", effect: "objection" });
   });
 
-  it("lets the judge announce a ruling in plain words", () => {
+  it("lets the judge state what it re-ran and what it observed", () => {
     expect(sceneAt(2)).toMatchObject({ speaker: "judge", effect: "gavel" });
-    expect(sceneAt(2).line).toContain("Exhibit ev-1 is upheld");
+    expect(sceneAt(2).line).toContain("ev-1 upheld");
     expect(sceneAt(2).line).toContain('"never oversells the last baguette" fails today');
+    expect(sceneAt(2).line).toContain("expected -1 to be greater than or equal to 0");
+    expect(sceneAt(2).line).toContain("(0.9 s)");
   });
 });
 

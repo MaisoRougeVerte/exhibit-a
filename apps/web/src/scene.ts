@@ -55,11 +55,30 @@ function evidenceIndex(caseFile: CaseFile): Map<string, Evidence> {
   return index;
 }
 
-/** Turns one event of the trial into what the stage shows. */
+function firstLine(text: string): string {
+  const line = text
+    .split("\n")
+    .find((candidate) => /expected|Error|passed|bisect|line/.test(candidate));
+  return (line ?? text.split("\n")[0] ?? "").trim().slice(0, 140);
+}
+
+function seconds(ms: number): string {
+  return `${(ms / 1000).toFixed(1)} s`;
+}
+
+/** Turns one event of the trial into what the stage shows: facts first, no filler. */
 export function toScene(event: CaseEvent, caseFile: CaseFile): Scene {
   switch (event.type) {
     case "narration":
-      return { speaker: "narrator", expression: "neutral", line: event.line, effect: "none" };
+      // The opening shows the real bug report instead of scene-setting prose.
+      return caseFile.events[0] === event
+        ? {
+            speaker: "narrator",
+            expression: "neutral",
+            line: `Bug report: ${caseFile.bugReport.title}. ${caseFile.bugReport.body}`,
+            effect: "none",
+          }
+        : { speaker: "narrator", expression: "neutral", line: event.line, effect: "none" };
     case "claim":
     case "objection":
     case "withdrawal":
@@ -70,7 +89,7 @@ export function toScene(event: CaseEvent, caseFile: CaseFile): Scene {
         effect: event.type === "objection" ? "objection" : "none",
       };
     case "ruling":
-      return rulingScene(event.evidenceId, event.status, evidenceIndex(caseFile));
+      return rulingScene(event, evidenceIndex(caseFile));
     case "verdict":
       return { speaker: "judge", expression: "neutral", line: event.line, effect: "gavel" };
     default:
@@ -78,37 +97,37 @@ export function toScene(event: CaseEvent, caseFile: CaseFile): Scene {
   }
 }
 
-function rulingScene(
-  evidenceId: string,
-  status: RulingStatus,
-  index: ReadonlyMap<string, Evidence>,
-): Scene {
-  const evidence = index.get(evidenceId);
-  const claim = evidence === undefined ? evidenceId : describeEvidence(evidence);
-  switch (status) {
+type Ruling = Extract<CaseEvent, { type: "ruling" }>;
+
+function rulingScene(ruling: Ruling, index: ReadonlyMap<string, Evidence>): Scene {
+  const evidence = index.get(ruling.evidenceId);
+  const claim = evidence === undefined ? ruling.evidenceId : describeEvidence(evidence);
+  const observed = firstLine(ruling.excerpt);
+  const facts = `${observed === "" ? "" : ` Observed: ${observed}.`} (${seconds(ruling.durationMs)})`;
+  switch (ruling.status) {
     case "upheld":
       return {
         speaker: "judge",
         expression: "neutral",
-        line: `Exhibit ${evidenceId} is upheld. The court re-ran it: ${claim}.`,
+        line: `${ruling.evidenceId} upheld. Re-ran it: ${claim}.${facts}`,
         effect: "gavel",
       };
     case "rejected":
       return {
         speaker: "judge",
         expression: "angry",
-        line: `Exhibit ${evidenceId} is rejected. The court re-ran it, and it is not true that ${claim}.`,
+        line: `${ruling.evidenceId} rejected. Re-ran it: it is not true that ${claim}.${facts}`,
         effect: "gavel",
       };
     case "error":
       return {
         speaker: "judge",
         expression: "thinking",
-        line: `Exhibit ${evidenceId} could not be run. It carries no weight.`,
+        line: `${ruling.evidenceId} could not run, so it carries no weight.${facts}`,
         effect: "gavel",
       };
     default:
-      return assertNever(status);
+      return assertNever(ruling.status);
   }
 }
 

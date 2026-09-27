@@ -8,6 +8,9 @@ export const PIXEL_CORNERS = `polygon(0 ${TWO}, ${STEP} ${TWO}, ${STEP} ${STEP},
 type PixelFrameProps = {
   fill: string;
   className?: string;
+  /** Outer frame and inner gap colors; defaults suit the navy console panels. */
+  frame?: string;
+  gap?: string;
   children: ReactNode;
 };
 
@@ -15,7 +18,13 @@ type PixelFrameProps = {
  * Light outer frame, dark gap, then the panel: three stacked layers clipped to pixel corners.
  * Content sits above the layers, unclipped, so hover cards can overflow the frame.
  */
-export function PixelFrame({ fill, className = "", children }: PixelFrameProps) {
+export function PixelFrame({
+  fill,
+  className = "",
+  frame = "#f1f5f9",
+  gap = "#05070f",
+  children,
+}: PixelFrameProps) {
   return (
     // Callers may position the frame themselves; otherwise it anchors its own layers.
     <div className={/\b(absolute|fixed)\b/.test(className) ? className : `relative ${className}`}>

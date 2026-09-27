@@ -42,13 +42,7 @@ function rulingLine(accusation: Accusation): string {
   }
 }
 
-const badge = {
-  pass: "bg-emerald-700 text-emerald-50",
-  fail: "bg-red-700 text-red-50",
-  error: "bg-slate-600 text-slate-100",
-} as const;
-
-const badgeLabel = { pass: "PASS", fail: "FAIL", error: "N/A" } as const;
+const PARCHMENT = "linear-gradient(180deg, #f6ead0 0%, #e8d4a6 100%)";
 
 type CommitRowProps = {
   commit: TimelineCommit;
@@ -60,6 +54,12 @@ type CommitRowProps = {
   onAccuse: () => void;
 };
 
+const node = {
+  pass: "bg-emerald-600",
+  fail: "bg-red-600",
+  error: "bg-stone-400",
+} as const;
+
 function CommitRow({
   commit,
   selected,
@@ -70,28 +70,26 @@ function CommitRow({
   onAccuse,
 }: CommitRowProps) {
   return (
-    <li>
+    <li className="relative">
       <button
         type="button"
         onMouseEnter={onHover}
         onClick={onAccuse}
         aria-pressed={accused}
-        className={`flex w-full items-center gap-2 rounded px-2 py-1 text-left ${selected ? "bg-white/15" : ""} ${accused ? "text-amber-200" : ""}`}
+        className={`flex w-full items-center gap-3 rounded-sm py-[0.3em] pr-2 pl-1 text-left ${selected ? "bg-[#3b2412]/15" : ""} ${accused ? "outline-2 outline-[#8b1d1d] outline-dashed" : ""}`}
       >
-        <span aria-hidden="true" className="w-3 text-amber-300">
+        <span aria-hidden="true" className="w-3 text-[#8b1d1d]">
           {selected ? "▶" : ""}
         </span>
-        <span className="font-mono text-amber-300">{commit.sha}</span>
-        <span className="min-w-0 flex-1 truncate text-white/90">{commit.subject}</span>
-        {status !== undefined && (
-          <span
-            className={`rounded-sm px-1.5 font-display text-xs tracking-wider ${badge[status]}`}
-          >
-            {badgeLabel[status]}
-          </span>
-        )}
+        {/* Git-graph node on the history line; its color is the test result at this commit. */}
+        <span
+          aria-hidden="true"
+          className={`relative z-10 size-[0.85em] shrink-0 rounded-full border-2 border-[#2b1a0e] ${status === undefined ? "bg-[#f3e6c4]" : node[status]} ${culprit ? "scale-150 ring-2 ring-red-700" : ""}`}
+        />
+        <span className="font-mono text-[#8b1d1d]">{commit.sha}</span>
+        <span className="min-w-0 flex-1 truncate text-[#2b1a0e]">{commit.subject}</span>
         {culprit && (
-          <span className="rounded-sm bg-red-600 px-1.5 font-display text-xs tracking-wider">
+          <span className="-rotate-6 border-2 border-red-700 px-1.5 font-display text-sm tracking-widest text-red-700">
             CULPRIT
           </span>
         )}
@@ -184,14 +182,38 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
         </header>
 
         <PixelFrame
-          fill={PANEL}
-          className="absolute top-[14%] left-[2%] z-20 h-[52%] w-[44%] portrait:w-[96%]"
+          fill={PARCHMENT}
+          frame="#2b1a0e"
+          gap="#c9a86a"
+          className="absolute top-[14%] left-[2%] z-20 h-[54%] w-[46%] -rotate-1 shadow-2xl portrait:w-[96%]"
         >
-          <div className="flex h-full flex-col px-[1em] py-[0.8em] text-vn-small">
-            <p className="mb-2 font-display tracking-wider text-amber-300">
-              Commit history · {timeline.repo}
+          <div className="flex h-full flex-col px-[1.1em] py-[0.8em] text-vn-small text-[#2b1a0e]">
+            <div className="mb-2 flex items-baseline justify-between gap-2 border-b-2 border-dashed border-[#2b1a0e]/40 pb-1">
+              <p className="font-display text-vn-name tracking-wider text-[#8b1d1d]">
+                Exhibit · git log
+              </p>
+              <p className="font-mono text-xs">{timeline.repo}</p>
+            </div>
+            <p className="mb-1 flex flex-wrap gap-3 text-xs">
+              <span>
+                <span className="mr-1 inline-block size-2.5 rounded-full bg-emerald-600" />
+                test passes
+              </span>
+              <span>
+                <span className="mr-1 inline-block size-2.5 rounded-full bg-red-600" />
+                test fails
+              </span>
+              <span>
+                <span className="mr-1 inline-block size-2.5 rounded-full bg-stone-400" />
+                cannot run
+              </span>
             </p>
-            <ol ref={listRef} className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <ol ref={listRef} className="relative min-h-0 flex-1 overflow-y-auto pr-1">
+              {/* The history line the commit nodes sit on. */}
+              <span
+                aria-hidden="true"
+                className="absolute top-2 bottom-2 left-[2.35em] w-[3px] bg-[#2b1a0e]/50"
+              />
               {newestFirst.map(({ commit, index }, row) => (
                 <CommitRow
                   key={commit.sha}
@@ -208,11 +230,11 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
                 />
               ))}
             </ol>
-            <p className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-white/60">
+            <p className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-[#2b1a0e]/70">
               <span>
-                Real run of the reproduction test at every commit · ↑↓ choose · Enter accuse
+                Each dot is a real run of the reproduction test · ↑↓ choose · Enter accuse
               </span>
-              <a href={trialHref(timeline.caseId)} className="text-amber-300 underline">
+              <a href={trialHref(timeline.caseId)} className="text-[#8b1d1d] underline">
                 Watch Bob's trial
               </a>
             </p>

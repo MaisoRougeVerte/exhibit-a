@@ -2,6 +2,10 @@
 
 **Your AI says it found the bug. Make it prove it.**
 
+![Exhibit A: Bob and the prosecutor face off in a pixel-art courtroom](docs/cover.jpg)
+
+[Live demo](https://exhibit-a-alpha.vercel.app) · [Watch the framed-commit trial](https://exhibit-a-alpha.vercel.app/#/trial/framed-commit) · [Accuse a commit](https://exhibit-a-alpha.vercel.app/#/accuse/framed-commit) · [Bob sessions](bob_sessions/)
+
 Exhibit A puts a bug on trial. IBM Bob investigates with parallel subagents and must back every
 claim with executable evidence. An independent prosecutor subagent attacks each claim. A
 deterministic judge, plain code with no LLM, re-runs every piece of evidence. Only claims that

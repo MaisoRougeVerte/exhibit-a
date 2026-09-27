@@ -2,6 +2,7 @@
 
 | Asset | Source | License |
 |---|---|---|
+| Cover `docs/cover.jpg` | Original, generated with OpenAI image generation through Codex CLI | Created for this project |
 | Characters in `apps/web/src/assets/characters/` (Bob, the Prosecutor, the Judge) | Original 16-bit pixel art characters, generated with OpenAI image generation through Codex CLI on 26 September 2026. Bob wears the IBM Bob brand colors as a nod to the product. | Created for this project |
 | Backgrounds in `apps/web/src/assets/backgrounds/` | Generated with OpenAI image generation through Codex CLI on 26 September 2026 | Created for this project |
 | "OBJECTION!" bubble in `apps/web/src/assets/effects/` | Original, generated with OpenAI image generation through Codex CLI | Created for this project |

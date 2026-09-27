@@ -105,7 +105,7 @@ pnpm judge --check cases/framed-commit.json   # re-runs every piece of evidence,
 
 | Path | Content |
 |---|---|
-| `.bob/` | The Bob IDE `tribunal` mode and its evidence skill |
+| `.bob/` | The Bob IDE `tribunal` mode, its evidence skill, rules and slash commands |
 | `packages/schema` | Zod schema of a trial, with the integrity rules |
 | `judge/` | Deterministic evidence runner and per-commit timelines |
 | `cases/` | Trials recorded from real Bob runs, and their timelines |
@@ -124,6 +124,8 @@ pnpm dev     # site on http://localhost:5173
 Bob is the engine of the product, not only a coding assistant:
 
 - **Tribunal mode and evidence skill:** written with Bob IDE in Agent mode.
+- **Slash commands and mode rules:** `/trial`, `/rejudge` and `/verdict` in `.bob/commands/`, and
+  evidence-first rules for the Tribunal mode in `.bob/rules-tribunal/`, also written by Bob.
 - **The judge:** first version written by Bob in Agent mode, then reviewed; three defects found in
   review were fixed and covered by tests (a compile error counted as a failing test, a test name
   matching nothing counted as a pass, and old commits did not receive the reproduction test).

@@ -21,7 +21,8 @@ const roles = [
 
 export function HomePage() {
   const timeline = firstTimeline();
-  const score = scoreboard(bundledCases);
+  // Only real Bob runs count: hand-written fixtures would distort a measured rate.
+  const score = scoreboard(bundledCases.filter((caseFile) => caseFile.source === "bob-ide"));
   return (
     <main className="min-h-dvh bg-stone-950 text-white">
       <section className="grid min-h-dvh place-items-center bg-black">

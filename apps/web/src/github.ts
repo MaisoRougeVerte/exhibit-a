@@ -4,20 +4,29 @@ import { z } from "zod";
 /** Trials are published on this branch of the connected repository, under `cases/`. */
 export const TRIALS_BRANCH = "exhibit-a";
 
-export type Loaded<T> = { ok: true; value: T } | { ok: false; error: string };
+type Loaded<T> = { ok: true; value: T } | { ok: false; error: string };
 
 export type RemoteTrial = { file: string; caseFile: CaseFile };
 
 const listingSchema = z.array(z.object({ name: z.string(), type: z.string() }));
 
 // One promise per key, so React's `use()` sees a stable value across renders.
-function memoize<T>(load: (key: string) => Promise<T>): (key: string) => Promise<T> {
-  const cache = new Map<string, Promise<T>>();
+export function memoize<T>(
+  load: (key: string) => Promise<Loaded<T>>,
+): (key: string) => Promise<Loaded<T>> {
+  const cache = new Map<string, Promise<Loaded<T>>>();
   return (key) => {
     const existing = cache.get(key);
     if (existing !== undefined) return existing;
     const promise = load(key);
     cache.set(key, promise);
+    // Forget failures so that reconnecting retries instead of replaying the old error.
+    const forget = () => {
+      if (cache.get(key) === promise) cache.delete(key);
+    };
+    void promise.then((result) => {
+      if (!result.ok) forget();
+    }, forget);
     return promise;
   };
 }

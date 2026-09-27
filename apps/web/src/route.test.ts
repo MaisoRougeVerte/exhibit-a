@@ -25,6 +25,7 @@ describe("parseRoute, service pages", () => {
   it.each([
     ["#/dashboard", { page: "dashboard" }],
     ["#/try", { page: "try" }],
+    ["#/docs/crumb-and-co", { page: "docs", repo: "crumb-and-co" }],
     ["#/accuse/framed-commit", { page: "accuse", caseId: "framed-commit" }],
     [
       "#/r/acme/shop/framed-commit.json",

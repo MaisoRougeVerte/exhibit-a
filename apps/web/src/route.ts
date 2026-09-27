@@ -6,14 +6,42 @@ export type Route =
   | { page: "dashboard" }
   | { page: "remote-trial"; owner: string; repo: string; file: string }
   | { page: "try" }
+  | { page: "docs"; repo: string }
   | { page: "not-found" };
 
-const caseRoutes = ["trial", "report", "accuse"] as const;
-type CasePage = (typeof caseRoutes)[number];
+type Parser = (rest: readonly string[]) => Route | undefined;
 
-function isCasePage(page: string): page is CasePage {
-  return caseRoutes.some((candidate) => candidate === page);
-}
+const one = (rest: readonly string[]) => (rest.length === 1 ? rest[0] : undefined);
+
+const parsers: Record<string, Parser> = {
+  dashboard: (rest) => (rest.length === 0 ? { page: "dashboard" } : undefined),
+  try: (rest) => (rest.length === 0 ? { page: "try" } : undefined),
+  report: (rest) => {
+    const caseId = one(rest);
+    return caseId === undefined ? undefined : { page: "report", caseId };
+  },
+  accuse: (rest) => {
+    const caseId = one(rest);
+    return caseId === undefined ? undefined : { page: "accuse", caseId };
+  },
+  docs: (rest) => {
+    const repo = one(rest);
+    return repo === undefined ? undefined : { page: "docs", repo };
+  },
+  trial: (rest) => {
+    const [caseId, rawStep] = rest;
+    if (caseId === undefined || rest.length > 2) return undefined;
+    // An optional step deep-links to one moment of the trial, 1-based like the on-screen counter.
+    const step = rawStep === undefined ? 1 : Number(rawStep);
+    return Number.isInteger(step) && step >= 1 ? { page: "trial", caseId, step } : undefined;
+  },
+  r: (rest) => {
+    const [owner, repo, file] = rest;
+    return rest.length === 3 && owner && repo && file
+      ? { page: "remote-trial", owner, repo, file }
+      : undefined;
+  },
+};
 
 /** Hash routes keep the site fully static, e.g. `#/trial/<id>` or `#/r/<owner>/<repo>/<file>`. */
 export function parseRoute(hash: string): Route {
@@ -24,21 +52,7 @@ export function parseRoute(hash: string): Route {
     .map((part) => decodeURIComponent(part));
   const [page, ...rest] = parts;
   if (page === undefined) return { page: "home" };
-  if (rest.length === 0 && (page === "dashboard" || page === "try")) return { page };
-  if (page === "trial" && rest[0] !== undefined && rest.length <= 2) {
-    // An optional step deep-links to one moment of the trial, 1-based like the on-screen counter.
-    const step = rest[1] === undefined ? 1 : Number(rest[1]);
-    if (!Number.isInteger(step) || step < 1) return { page: "not-found" };
-    return { page: "trial", caseId: rest[0], step };
-  }
-  if (isCasePage(page) && page !== "trial" && rest.length === 1 && rest[0] !== undefined) {
-    return { page, caseId: rest[0] };
-  }
-  const [owner, repo, file] = rest;
-  if (page === "r" && rest.length === 3 && owner && repo && file) {
-    return { page: "remote-trial", owner, repo, file };
-  }
-  return { page: "not-found" };
+  return parsers[page]?.(rest) ?? { page: "not-found" };
 }
 
 export function trialHref(caseId: string, step?: number): string {
@@ -56,4 +70,8 @@ export function accuseHref(caseId: string): string {
 
 export function remoteTrialHref(owner: string, repo: string, file: string): string {
   return `#/r/${[owner, repo, file].map(encodeURIComponent).join("/")}`;
+}
+
+export function docsHref(repo: string): string {
+  return `#/docs/${encodeURIComponent(repo)}`;
 }

@@ -2,6 +2,8 @@ import { assertNever } from "@exhibit-a/schema";
 import { AccusePage } from "./accuse-page.tsx";
 import { findCase } from "./cases.ts";
 import { DashboardPage } from "./dashboard-page.tsx";
+import { DocsPage } from "./docs-page.tsx";
+import { findDocsReport } from "./docs-reports.ts";
 import { HomePage } from "./home-page.tsx";
 import { PageShell, Panel } from "./page-shell.tsx";
 import { RemoteTrialPage } from "./remote-trial-page.tsx";
@@ -62,6 +64,10 @@ export function App() {
       return <RemoteTrialPage key={`${route.owner}/${route.repo}/${route.file}`} {...route} />;
     case "try":
       return <TryPage />;
+    case "docs": {
+      const report = findDocsReport(route.repo);
+      return report === undefined ? <NotFound /> : <DocsPage report={report} />;
+    }
     case "not-found":
       return <NotFound />;
     default:

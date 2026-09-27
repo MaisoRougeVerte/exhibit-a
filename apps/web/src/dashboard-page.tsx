@@ -1,8 +1,12 @@
 import { type FormEvent, Suspense, use, useState } from "react";
+import { bundledCases } from "./cases.ts";
 import { saveConnectedRepos, useConnectedRepos } from "./connected-repos.ts";
+import { docsReports } from "./docs-reports.ts";
 import { fetchTrials, parseRepoInput, TRIALS_BRANCH } from "./github.ts";
 import { PageShell, Panel } from "./page-shell.tsx";
-import { remoteTrialHref } from "./route.ts";
+import { accuseHref, docsHref, remoteTrialHref, reportHref, trialHref } from "./route.ts";
+import { scoreboard } from "./scoreboard.ts";
+import { findTimeline } from "./timelines.ts";
 
 // Flipped once the reusable GitHub Action is published; until then setup is shown as roadmap.
 const ACTION_READY = false;
@@ -63,6 +67,81 @@ function SetupSteps({ owner, repo }: { owner: string; repo: string }) {
   );
 }
 
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-sm border-2 border-white/15 bg-black/40 px-4 py-3">
+      <p className="font-display text-4xl text-amber-200">{value}</p>
+      <p className="text-sm text-white/70">{label}</p>
+    </div>
+  );
+}
+
+function DemoCourtroom() {
+  const recorded = bundledCases.filter((caseFile) => caseFile.source === "bob-ide");
+  const score = scoreboard(recorded);
+  const docs = docsReports[0];
+  const docsBroken = docs?.findings.filter((finding) => finding.status === "broken").length ?? 0;
+  return (
+    <Panel title="MaisoRougeVerte/crumb-and-co · demo courtroom">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat value={String(score.trials)} label="trials run by Bob" />
+        <Stat value={`${score.withdrawn}/${score.claims}`} label="claims that did not survive" />
+        <Stat value={String(score.evidence)} label="evidence re-run by the judge" />
+        {docs !== undefined && (
+          <Stat
+            value={`${docsBroken}/${docs.findings.length}`}
+            label="false references in the docs"
+          />
+        )}
+      </div>
+      <ul className="mt-4 flex flex-col gap-2">
+        {recorded.map((caseFile) => {
+          const verdict = caseFile.events.at(-1);
+          return (
+            <li
+              key={caseFile.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-sm bg-black/35 px-3 py-2"
+            >
+              <span>
+                <span className="mr-2 -rotate-3 inline-block border-2 border-red-400 px-1 font-display text-xs tracking-widest text-red-300">
+                  GUILTY
+                </span>
+                {caseFile.bugReport.title}
+                {verdict?.type === "verdict" && verdict.culpritCommit !== undefined && (
+                  <span className="ml-2 font-mono text-sm text-amber-300">
+                    {verdict.culpritCommit}
+                  </span>
+                )}
+              </span>
+              <span className="flex gap-2 text-sm">
+                <a href={trialHref(caseFile.id)} className="underline">
+                  Replay
+                </a>
+                <a href={reportHref(caseFile.id)} className="underline">
+                  Verdict
+                </a>
+                {findTimeline(caseFile.id) !== undefined && (
+                  <a href={accuseHref(caseFile.id)} className="underline">
+                    Accuse
+                  </a>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      {docs !== undefined && (
+        <a
+          href={docsHref(docs.repo)}
+          className="mt-4 inline-block rounded-sm bg-amber-500 px-4 py-1.5 font-extrabold text-stone-950"
+        >
+          Docs on trial
+        </a>
+      )}
+    </Panel>
+  );
+}
+
 export function DashboardPage() {
   const repos = useConnectedRepos();
   const [input, setInput] = useState("");
@@ -87,6 +166,7 @@ export function DashboardPage() {
       backdrop="prosecution"
       subtitle="Connect a public GitHub repository to follow its trials. Nothing is stored on our side: the list lives in this browser, trials are read from GitHub, and API keys only ever go into your repository's GitHub secrets."
     >
+      <DemoCourtroom />
       <Panel title="Connect a repository">
         <form onSubmit={connect} className="flex flex-wrap gap-3">
           <label className="sr-only" htmlFor="repo">

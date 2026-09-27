@@ -99,7 +99,7 @@ Session summaries are in [`bob_sessions/`](bob_sessions/).
 
 The tooling, the demo repository, the web site and the reviews were written with Claude Code.
 Character art and backgrounds were generated with OpenAI image generation through Codex; the
-characters are original. Fonts: Cinzel, M PLUS Rounded 1c and Bangers, all under the SIL Open
+characters are original. Fonts: Jersey 10 and M PLUS Rounded 1c, all under the SIL Open
 Font License.
 
 ## Limits

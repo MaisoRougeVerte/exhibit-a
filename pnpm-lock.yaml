@@ -29,9 +29,6 @@ importers:
       '@exhibit-a/schema':
         specifier: workspace:*
         version: link:../../packages/schema
-      '@fontsource/bangers':
-        specifier: 5.3.0
-        version: 5.3.0
       '@fontsource/jersey-10':
         specifier: 5.3.0
         version: 5.3.0
@@ -146,9 +143,6 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
-
-  '@fontsource/bangers@5.3.0':
-    resolution: {integrity: sha512-tSRpmWwkqrO9PCqo9wjA/99/5sLOIWm5cf51G3ooEHd8qZus8sVSSJoWp/7EvM5rIgZMjKRG6XtY9yeisKxE7g==}
 
   '@fontsource/jersey-10@5.3.0':
     resolution: {integrity: sha512-1dOTUg3JXm/Ls6j4BEPLRF5DHGadCGQy/sIHS7L0SWauB2rEd2W6614Xufxoc+TVXtrt8kVR6IWh3RFkXmy/Cw==}
@@ -1032,8 +1026,6 @@ snapshots:
 
   '@biomejs/cli-win32-x64@2.5.14':
     optional: true
-
-  '@fontsource/bangers@5.3.0': {}
 
   '@fontsource/jersey-10@5.3.0': {}
 

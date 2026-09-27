@@ -31,7 +31,7 @@ export function classify(quote: string): Reference["kind"] | undefined {
   return undefined;
 }
 
-export function referencesIn(doc: string, text: string): Reference[] {
+function referencesIn(doc: string, text: string): Reference[] {
   const references: Reference[] = [];
   let inFence = false;
   text.split("\n").forEach((content, index) => {

@@ -43,6 +43,14 @@ re-ran 12 pieces of evidence. The same courtroom can rate any AI debugger: plant
 hallucination traps and security flaws, let each model investigate, and count what survives.
 That benchmark is on the roadmap.
 
+## Docs on trial
+
+The same rule applies to documentation. `pnpm docs-check --repo <path>` reads the README and
+`docs/`, and checks every file, `pnpm` command and code name quoted there against the repository,
+with plain code. On Crumb & Co, 6 of 18 references in the API docs are false: they still point to
+`src/stock.ts` and `reserveStock`, renamed by the refactor, and to a `FIDELITE20` promo code that
+does not exist.
+
 ## Three recorded trials
 
 All three were run by Bob on [Crumb & Co](https://github.com/MaisoRougeVerte/crumb-and-co), a small

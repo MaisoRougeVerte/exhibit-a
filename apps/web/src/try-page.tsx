@@ -24,6 +24,13 @@ const ways = [
     cta: "Open the repo",
   },
   {
+    status: "Available",
+    title: "Put your docs on trial",
+    text: "Run pnpm docs-check --repo path/to/your/repo. Every file, command and code name quoted in your README and docs is checked against the code, with no AI.",
+    href: "#/docs/crumb-and-co",
+    cta: "See the demo verdict",
+  },
+  {
     status: "Roadmap",
     title: "Benchmark AI debuggers",
     text: "A suite of planted bugs, hallucination traps and security flaws, where every model faces the same prosecutor and the same deterministic judge. The share of claims that do not survive becomes a measured hallucination rate per model.",

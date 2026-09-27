@@ -1,6 +1,7 @@
 import { bundledCases } from "./cases.ts";
 import { CourtroomBackdrop } from "./courtroom-backdrop.tsx";
 import { accuseHref, reportHref, trialHref } from "./route.ts";
+import { scoreboard } from "./scoreboard.ts";
 import { findTimeline, firstTimeline } from "./timelines.ts";
 
 const roles = [
@@ -20,6 +21,7 @@ const roles = [
 
 export function HomePage() {
   const timeline = firstTimeline();
+  const score = scoreboard(bundledCases);
   return (
     <main className="min-h-dvh bg-stone-950 text-white">
       <section className="grid min-h-dvh place-items-center bg-black">
@@ -41,6 +43,15 @@ export function HomePage() {
               investigates, a prosecutor objects, and a deterministic judge re-runs every piece of
               evidence before any verdict.
             </p>
+            {score.claims > 0 && (
+              <p className="rounded bg-black/60 px-[1em] py-[0.4em] text-vn-small text-amber-100">
+                In {score.trials} real trials, Bob made {score.claims} claims.{" "}
+                <span className="font-extrabold text-red-300">
+                  {score.withdrawn} did not survive the court
+                </span>{" "}
+                after {score.objections} objections and {score.evidence} re-run pieces of evidence.
+              </p>
+            )}
             <nav className="mt-[1cqw] flex flex-col items-stretch gap-[0.9cqw] text-vn-menu portrait:gap-3">
               {bundledCases[0] !== undefined && (
                 <a

@@ -131,7 +131,8 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
   const newestFirst = timeline.commits.map((commit, index) => ({ commit, index })).reverse();
   const [cursor, setCursor] = useState(0);
   const [accused, setAccused] = useState<number | undefined>(undefined);
-  const [revealed, setRevealed] = useState(false);
+  // Results are visible from the start: the timeline itself is useful to a developer.
+  const [revealed, setRevealed] = useState(true);
   const listRef = useRef<HTMLOListElement>(null);
 
   const accusation = accused === undefined ? undefined : accuse(timeline, accused);
@@ -208,7 +209,9 @@ export function AccusePage({ timeline, bugTitle }: AccusePageProps) {
               ))}
             </ol>
             <p className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-white/60">
-              <span>↑↓ choose · Enter accuse · R reveal all</span>
+              <span>
+                Real run of the reproduction test at every commit · ↑↓ choose · Enter accuse
+              </span>
               <a href={trialHref(timeline.caseId)} className="text-amber-300 underline">
                 Watch Bob's trial
               </a>

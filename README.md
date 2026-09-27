@@ -31,6 +31,14 @@ everything by hand, and the time the AI saved is lost again.
 5. **The verdict.** The schema itself refuses a verdict that upholds a withdrawn claim or a claim
    whose evidence was not upheld.
 
+## A measured hallucination rate
+
+Across the three recorded trials, Bob made **8 claims**. **4 of them did not survive the court:**
+they were withdrawn after the prosecutor objected or the judge rejected their evidence. The judge
+re-ran 12 pieces of evidence. The same courtroom can rate any AI debugger: plant bugs,
+hallucination traps and security flaws, let each model investigate, and count what survives.
+That benchmark is on the roadmap.
+
 ## Three recorded trials
 
 All three were run by Bob on [Crumb & Co](https://github.com/MaisoRougeVerte/crumb-and-co), a small

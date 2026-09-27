@@ -24,6 +24,13 @@ const ways = [
   },
   {
     status: "Roadmap",
+    title: "Benchmark AI debuggers",
+    text: "A suite of planted bugs, hallucination traps and security flaws, where every model faces the same prosecutor and the same deterministic judge. The share of claims that do not survive becomes a measured hallucination rate per model.",
+    href: "#/",
+    cta: "See the current score",
+  },
+  {
+    status: "Roadmap",
     title: "Put your own repository on trial",
     text: "Install the Exhibit A GitHub Action, add your Bob API key as a repository secret, and label a bug issue on-trial. The trial appears in your dashboard.",
     href: "#/dashboard",
@@ -41,7 +48,7 @@ export function TryPage() {
       </nav>
       <header>
         <p className="text-sm uppercase tracking-widest text-brass-400">Try it</p>
-        <h1 className="font-display text-4xl">Four ways to test Exhibit A</h1>
+        <h1 className="font-display text-4xl">Ways to test Exhibit A</h1>
       </header>
       <ul className="grid gap-4 sm:grid-cols-2">
         {ways.map((way) => (

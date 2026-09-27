@@ -30,71 +30,76 @@ function Sprite({ speaker, expression }: { speaker: Speaker; expression: Express
   );
 }
 
+/** Every stage uses one composition: a character at the bottom and one prop in the top corner. */
+function Stage({
+  speaker,
+  expression,
+  prop,
+}: {
+  speaker: Speaker;
+  expression: Expression;
+  prop?: ReactNode;
+}) {
+  return (
+    <div className="relative flex h-full w-full items-end justify-center">
+      <Sprite speaker={speaker} expression={expression} />
+      {prop !== undefined && <div className="absolute top-9 right-3">{prop}</div>}
+    </div>
+  );
+}
+
 function BugNote() {
   return (
-    <div className="relative mb-8 w-[82%] -rotate-3 border-4 border-[#2b1a0e] bg-[#f6ead0] p-3 text-left text-[#2b1a0e] shadow-[6px_6px_0_#000]">
+    <div className="relative w-24 rotate-3 border-[3px] border-[#2b1a0e] bg-[#f6ead0] p-1.5 text-left text-[#2b1a0e] shadow-[4px_4px_0_#000]">
       <span
         aria-hidden="true"
-        className="absolute -top-3 left-1/2 size-5 -translate-x-1/2 rounded-full border-2 border-black bg-red-600"
+        className="absolute -top-2 left-1/2 size-3.5 -translate-x-1/2 rounded-full border-2 border-black bg-red-600"
       />
-      <p className="font-display text-base text-[#8b1d1d]">BUG #3 · URGENT</p>
-      <p className="mt-1 text-sm leading-tight font-extrabold">
-        Stock went negative on the last baguette
-      </p>
-      <div aria-hidden="true" className="mt-2 flex flex-col gap-1">
-        <span className="h-1.5 w-full bg-[#2b1a0e]/25" />
-        <span className="h-1.5 w-4/5 bg-[#2b1a0e]/25" />
-        <span className="h-1.5 w-3/5 bg-[#2b1a0e]/25" />
-      </div>
+      <p className="font-display text-xs leading-none text-[#8b1d1d]">BUG #3</p>
+      <p className="text-[10px] leading-tight font-extrabold">Stock went negative</p>
     </div>
   );
 }
 
-function Objecting() {
-  return (
-    <div className="relative flex h-full w-full items-end justify-center">
-      <Sprite speaker="prosecutor" expression="angry" />
-      <img
-        src={objectionArt}
-        alt=""
-        className="absolute top-6 right-0 w-28 rotate-6 drop-shadow-[0_3px_0_#000]"
-      />
-    </div>
-  );
-}
-
-function Verdict() {
-  return (
-    <div className="relative flex h-full w-full items-end justify-center">
-      <Sprite speaker="judge" expression="angry" />
-      <p className="absolute bottom-8 left-1/2 -translate-x-1/2 -rotate-12 border-4 border-red-500 bg-black/70 px-2 font-display text-3xl tracking-widest text-red-400 shadow-[4px_4px_0_#000]">
-        GUILTY
-      </p>
-    </div>
-  );
-}
+const stamp = (
+  <p className="-rotate-12 border-[3px] border-red-500 bg-black/70 px-1.5 font-display text-xl tracking-widest text-red-400 shadow-[3px_3px_0_#000]">
+    GUILTY
+  </p>
+);
 
 const flow: { title: string; text: string; art: ReactNode }[] = [
-  { title: "Bug report", text: "An issue, written the way a user saw it.", art: <BugNote /> },
+  {
+    title: "Bug report",
+    text: "An issue, written the way a user saw it.",
+    art: <Stage speaker="investigator" expression="neutral" prop={<BugNote />} />,
+  },
   {
     title: "Investigate",
     text: "Bob explores history, logs and code in parallel, and writes a failing test.",
-    art: <Sprite speaker="investigator" expression="thinking" />,
+    art: <Stage speaker="investigator" expression="thinking" />,
   },
   {
     title: "Accuse",
     text: "Every claim cites runnable evidence: test, replay, log search, bisect.",
-    art: <Sprite speaker="investigator" expression="confident" />,
+    art: <Stage speaker="investigator" expression="confident" />,
   },
   {
     title: "Object & judge",
     text: "An independent prosecutor objects; plain code re-runs every piece of evidence.",
-    art: <Objecting />,
+    art: (
+      <Stage
+        speaker="prosecutor"
+        expression="angry"
+        prop={
+          <img src={objectionArt} alt="" className="w-24 rotate-6 drop-shadow-[0_3px_0_#000]" />
+        }
+      />
+    ),
   },
   {
     title: "Verdict",
     text: "Culprit, root cause, fix, and commands to check it yourself.",
-    art: <Verdict />,
+    art: <Stage speaker="judge" expression="angry" prop={stamp} />,
   },
 ];
 
